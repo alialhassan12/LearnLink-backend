@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Mail\WelcomeMail;
 use App\Models\Plan;
 use App\Models\Student;
 use App\Models\Subscription;
@@ -12,6 +13,7 @@ use App\Services\SupabaseStorageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 
 class authController extends Controller
 {
@@ -53,6 +55,9 @@ class authController extends Controller
         });
 
         $token=$user->createToken('api_token')->plainTextToken;
+
+        // send welcome email
+        Mail::to($user->email)->send(new WelcomeMail($user));
 
         return response()->json([
             'message'=>'User registered successfully',

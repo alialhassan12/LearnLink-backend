@@ -20,7 +20,7 @@ class plansController extends Controller
             "features.ai_tokens_per_month"=>"required|integer|min:0",
             "features.search_priority"=>"required|boolean",
 
-            'duration_days'=>'required|integer|min:-1',
+            'duration_days'=>'nullable|integer|min:-1',
             'price'=>'required|numeric|min:0',
             'is_free'=>'required|boolean',
             'status'=>"required|in:active,inactive"

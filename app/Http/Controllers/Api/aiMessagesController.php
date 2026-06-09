@@ -181,7 +181,7 @@ class aiMessagesController extends Controller
 
 
                 // upload file to supabase
-                $fileTitle=$request->file->getClientOriginalName();
+                $fileTitle=date('Y-m-d_H-i-s');
                 $fileType=$request->file->getClientMimeType();
                 $file_path=$storage->uploadAiChatDocuments($request->file,$user->id,$fileTitle);
                 
