@@ -409,7 +409,8 @@ class coursesController extends Controller
         }
 
         $courses=$teacher->courses()->with('category')->get();
-
+        // load first subscription and plan to avoid n+1 query issue
+        $user->load('subscription.plan');
         $maxCoursesAllowed=$user->subscription->plan->features['max_courses'];
 
         // if($courses->isEmpty()){
@@ -461,7 +462,10 @@ class coursesController extends Controller
     }
 
     public function getCourseWithMaterialsById($id,Request $request,SupabaseStorageService $storage){
-        $course=Course::whereId($id)->with('teacher.user','category','sections.materials','enrollments.student.user')->first();
+        $course=Course::whereId($id)
+                        ->with('teacher.user','category','sections.materials')
+                        ->withCount('enrollments')
+                        ->first();
         if(!$course){
             return response()->json([
                 'message'=>'No course found'
@@ -651,9 +655,18 @@ class coursesController extends Controller
         $finfo = new \finfo(FILEINFO_MIME_TYPE);
         $mimeType = $finfo->buffer($fileContent) ?: 'application/octet-stream';
 
-        return response($fileContent, 200, [
-            'Content-Type' => $mimeType,
-            'Content-Disposition' => 'attachment; filename="' . addslashes($fileName) . '"',
+        // return response($fileContent, 200, [
+        //     'Content-Type' => $mimeType,
+        //     'Content-Disposition' => 'attachment; filename="' . addslashes($fileName) . '"',
+        // ]);
+
+        // return response()->download($material->path,$fileName);
+
+        return response()->stream(function() use ($disk,$material){
+            echo $disk->get($material->path);
+        },200,[
+            "Content-Type"=>$mimeType,
+            "Content-Disposition"=>'attachment;filename="'.addslashes($fileName).'"',
         ]);
     }
 }

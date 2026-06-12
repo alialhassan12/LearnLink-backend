@@ -18,13 +18,6 @@ class categoriesController extends Controller
     }
 
     public function listCategoriesToAdmin(Request $request){
-        $user=auth('sanctum')->user();
-        if(!$user || $user->role!= "admin"){
-            return response()->json([
-                "message"=>"Unautharized Access"
-            ],403);
-        }
-
         $categories=Category::withCount('courses')->orderBy("created_at")->get();
         return response()->json([
             "message"=>"Categories retrieved successfully",
@@ -36,13 +29,6 @@ class categoriesController extends Controller
         $request->validate([
             "title"=>"required|string"
         ]);
-
-        $user=auth('sanctum')->user();
-        if(!$user || $user->role!= "admin"){
-            return response()->json([
-                "message"=>"Unautharized Access"
-            ],403);
-        }
 
         $category=Category::create([
             "title"=>$request->title
@@ -61,12 +47,6 @@ class categoriesController extends Controller
             "title"=>"required|string"
         ]);
 
-        $user=auth('sanctum')->user();
-        if(!$user || $user->role!= "admin"){
-            return response()->json([
-                "message"=>"Unautharized Access"
-            ],403);
-        }
         $category=Category::where("id",$request->category_id)->first();
         if(!$category){
             return response()->json([
@@ -84,12 +64,6 @@ class categoriesController extends Controller
     }
 
     public function deleteCategory($id){
-        $user=auth('sanctum')->user();
-        if(!$user || $user->role!= "admin"){
-            return response()->json([
-                "message"=>"Unautharized Access"
-            ],403);
-        }
         $category=Category::whereId($id)->first();
         if(!$category){
             return response()->json([
@@ -107,13 +81,6 @@ class categoriesController extends Controller
             "category_id"=>"required|exists:categories,id",
             "status"=>"required|in:active,inactive",
         ]);
-
-        $user=auth('sanctum')->user();
-        if(!$user || $user->role!= "admin"){
-            return response()->json([
-                "message"=>"Unautharized Access"
-            ],403);
-        }
         
         $category=Category::whereId($request->category_id)->first();
         if(!$category){

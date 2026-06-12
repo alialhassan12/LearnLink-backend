@@ -89,7 +89,6 @@ class teacherController extends Controller
         }else{
             $user->update([
                 'name'=>$request->name,
-                'avatar'=>null,
             ]);
         }
         
@@ -151,6 +150,7 @@ class teacherController extends Controller
     public function getTeachers(Request $request,SupabaseStorageService $storage){
         $teachers=Teacher::query()
                 ->with('user')
+                ->withCount('publishedCourses')
                 ->orderBy('created_at','desc')
                 ->paginate(10)
                 ->through(function($teacher) use ($storage){
@@ -169,7 +169,7 @@ class teacherController extends Controller
                         'languages'=>$teacher->languages,
                         'created_at'=>$teacher->user->created_at,
                         'updated_at'=>$teacher->user->updated_at,
-                        'courses_count'=>$teacher->courses->count(),
+                        'courses_count'=>$teacher->published_courses_count,
                     ];
                 });
 
@@ -188,9 +188,9 @@ class teacherController extends Controller
     }
 
     public function getSubjects(){
-        $subjects=Teacher::all()
-                ->pluck('subjects')
+        $subjects=Teacher::pluck('subjects')
                 ->flatten()
+                ->filter()
                 ->unique()
                 ->values()
                 ->toArray();
@@ -202,9 +202,9 @@ class teacherController extends Controller
     }
 
     public function getLanguages(){
-        $languages=Teacher::all()
-                ->pluck('languages')
+        $languages=Teacher::pluck('languages')
                 ->flatten()
+                ->filter()
                 ->unique()
                 ->values()
                 ->toArray();
@@ -250,6 +250,7 @@ class teacherController extends Controller
 
         $query=Teacher::query()
                 ->with('user')
+                ->withCount('publishedCourses')
                 ->orderBy('created_at','desc');
         
         if($request->has('subjects') && count($request->subjects)>0){
@@ -289,7 +290,7 @@ class teacherController extends Controller
                         'languages'=>$teacher->languages,
                         'created_at'=>$teacher->user->created_at,
                         'updated_at'=>$teacher->user->updated_at,
-                        'courses_count'=>$teacher->courses->count(),
+                        'courses_count'=>$teacher->published_courses_count,
                     ];
                 });
 

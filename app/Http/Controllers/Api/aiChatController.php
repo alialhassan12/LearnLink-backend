@@ -15,7 +15,7 @@ class aiChatController extends Controller
                 "message"=>"Unauthorized Access"
             ],401);
         }
-        $chats=AiChat::with('user')->where('user_id',$user->id)->get();
+        $chats=AiChat::where('user_id',$user->id)->get();
         if($chats->isEmpty()){
             return response()->json([
                 "message"=>"No chats found"

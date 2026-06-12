@@ -15,30 +15,18 @@ class courseEnrollmentController extends Controller
             "course_id"=>"required|exists:courses,id",
         ]);
 
-        $user=$request->user();
-        if(!$user){
-            return response()->json([
-                "message"=>"Unauthenticated",
-                
-            ],401);
-        }
+        $user=auth('sanctum')->user();
+
         $student=$user->student;
-        if(!$student){
+
+        $existingEnrollment=CourseEnrollment::where('student_id',$student->id)->where('course_id',$request->course_id)->first();
+        if($existingEnrollment){
             return response()->json([
-                "message"=>"Unautharized Access"
-            ],403);
+                "message"=>"You are already enrolled in this course"
+            ],409);
         }
-
+        
         $enrollment=DB::transaction(function() use ($request,$student){
-            $existingEnrollment=CourseEnrollment::where('student_id',$student->id)
-                                                ->where('course_id',$request->course_id)->first();
-            
-            if($existingEnrollment){
-                return response()->json([
-                    "message"=>"You are already enrolled in this course"
-                ],409);
-            }
-
             $enrollment=CourseEnrollment::create([
                 "student_id"=>$student->id,
                 "course_id"=>$request->course_id,

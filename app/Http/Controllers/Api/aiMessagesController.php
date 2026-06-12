@@ -108,10 +108,9 @@ class aiMessagesController extends Controller
                 "ai_message"=>$aiMessage
             ],200);
         }catch(\Throwable $e){
+            Log::error('AI message failed', ['error' => $e]);
             return response()->json([
-                'message' => $e->getMessage(),
-                'line' => $e->getLine(),
-                'file' => $e->getFile(),
+                'message' => 'An error occurred while processing your request',
             ], 500);
         }
     }
@@ -233,9 +232,12 @@ class aiMessagesController extends Controller
                 "message"=>"Unauthenticated"
             ],401);
         }
-        $chat=AiChat::where('id',$request->ai_chat_id)->where('user_id',$user->id)->firstOrFail();
+        $chat=AiChat::with('aiMessages')
+                    ->where('id',$request->ai_chat_id)
+                    ->where('user_id',$user->id)
+                    ->firstOrFail();
         
-        $messages=$chat->load('aiMessages')->aiMessages;
+        $messages=$chat->aiMessages;
 
         if($messages->isEmpty()){
             return response()->json([

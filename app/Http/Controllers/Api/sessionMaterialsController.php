@@ -20,20 +20,6 @@ class sessionMaterialsController extends Controller
             "files.*.file"=>"required|file|mimes:pdf,doc,docx,ppt,pptx,xls,xlsx,jpg,jpeg,png,webp|max:20480"
         ]);
 
-        $user=$request->user();
-        if(!$user){
-            return response()->json([
-                "message"=>"unauthenticated user"
-            ],401);
-        }
-
-        $teacher=$user->teacher;
-        if(!$teacher){
-            return response()->json([
-                "message"=>"Unautharized Access"
-            ],403);
-        }
-
         $session=LiveSession::findOrFail($request->live_session_id);
         
         $materials=[];
@@ -69,13 +55,6 @@ class sessionMaterialsController extends Controller
             "session_id"=>"required|exists:live_sessions,id"
         ]);
 
-        $user=$request->user();
-        if(!$user){
-            return response()->json([
-                "message"=>"unauthenticated user"
-            ],401);
-        }
-
         $session=LiveSession::with('sessionMaterials')->where('id',$request->session_id)->first();
         $materials=$session->sessionMaterials;
         
@@ -99,20 +78,6 @@ class sessionMaterialsController extends Controller
         $request->validate([
             'sessionMaterialId'=>'required|exists:session_materials,id'
         ]);
-
-        $user=$request->user();
-        if(!$user){
-            return response()->json([
-                "message"=>"unauthenticated user"
-            ],401);
-        }
-
-        $teacher=$user->teacher;
-        if(!$teacher){
-            return response()->json([
-                "message"=>"Unautharized Access"
-            ],403);
-        }
 
         $sessionMaterial=SessionMaterial::findOrFail($request->sessionMaterialId);
         

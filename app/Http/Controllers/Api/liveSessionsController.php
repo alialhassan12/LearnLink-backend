@@ -85,6 +85,8 @@ class liveSessionsController extends Controller
             ],401);
         }
 
+        // load subscription and plan to avoid n+1 query issue
+        $user->load('subscription.plan');
         $max_live_sessions=$user->subscription->plan->features['sessions_per_month'];
 
         $bookings=$teacher->approvedBookings()->with('liveSession','student.user')->get();

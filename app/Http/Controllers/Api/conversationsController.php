@@ -15,7 +15,7 @@ class conversationsController extends Controller
                 'message'=>'Unauthenticated'
             ],401);
         }
-        $conversations=$user->conversations->load('participants.user', 'lastMessage.sender');
+        $conversations=$user->conversations;
 
         
         return response()->json([

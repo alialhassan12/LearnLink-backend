@@ -26,8 +26,6 @@ Broadcast::routes(['middleware' => ['auth:sanctum']]);
 // public routes
 Route::post('/auth/register',[authController::class,'register'])->name('register_new_user');
 Route::post('/auth/login',[authController::class,'login'])->name('login_user');
-Route::post('/ai/messages/new',[aiMessagesController::class,'sendMessage'])->name('send-ai-message');
-Route::post('/ai/messages-with-file/new',[aiMessagesController::class,'sendMessageWithFile'])->name('send-ai-message-with-file');
 
 // auth routes
 Route::middleware('auth:sanctum')->group(function () {
@@ -41,8 +39,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/messages/conversations',[conversationsController::class,'getConversations'])->name('get-conversations');
     Route::post('/messages/conversation',[messageController::class,'getMessagesByConversation'])->name('get-messages');
     Route::post('/ai/messages',[aiMessagesController::class,'getMessages'])->name('get-ai-messages');
-    
     Route::get('/ai/chats',[aiChatController::class,'getChats'])->name('get-user-ai-chats');
+    Route::post('/ai/messages/new',[aiMessagesController::class,'sendMessage'])->name('send-ai-message');
+    Route::post('/ai/messages-with-file/new',[aiMessagesController::class,'sendMessageWithFile'])->name('send-ai-message-with-file');
 
     // admin routes
     Route::middleware(['checkRole:admin'])->group(function(){

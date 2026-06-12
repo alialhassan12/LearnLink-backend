@@ -188,13 +188,18 @@ class bookingsController extends Controller
             ], 401);
         }
 
-        if (!$subscriptionService->canCreateLiveSession($user)) {
+        // load subscription and plan to avoid n+1 query issue
+        $user->load('subscription.plan');
+        $max_live_sessions = $user->subscription->plan->features['sessions_per_month'];
+        $current_live_sessions = $subscriptionService->getLiveSessionsCreatedCount($user, $user->subscription);
+
+        if ($current_live_sessions >= $max_live_sessions) {
             return response()->json([
                 'message' => 'You have reached the maximum number of live sessions allowed per month. Please upgrade your subscription plan or wait for the next month.',
             ], 429);
         }
 
-        $booking = $teacher->bookings()->find($request->booking_id);
+        $booking = $teacher->bookings()->with('student.user')->find($request->booking_id);
         if (!$booking) {
             return response()->json([
                 'message' => 'Booking not found or unauthorized access',
@@ -220,12 +225,12 @@ class bookingsController extends Controller
             $booking->save();
         });
 
-        $booking->load('student.user');
+        // $booking->load('student.user');
         if ($booking->student->user->avatar) {
             $booking->student->user->avatar = $storage->getPublicUrl($booking->student->user->avatar);
         }
 
-        $current_live_sessions = $subscriptionService->getLiveSessionsCreatedCount($user);
+        $current_live_sessions++;
 
         return response()->json([
             'message' => 'Booking approved successfully',

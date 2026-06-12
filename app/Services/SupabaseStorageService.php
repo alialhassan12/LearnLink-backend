@@ -36,7 +36,11 @@ class SupabaseStorageService{
         $fileName=$course_title . '-'. time() . '.' . $ext;
         $path="course_thumbnails/courses/" . $fileName;
 
-        $this->disk->put($path,file_get_contents($file));
+        $this->disk->put(
+            $path,
+            fopen($file->getRealPath(), 'r'),
+            ['ContentType' => $file->getMimeType()]
+        );
 
         return $path;
     }
@@ -47,7 +51,11 @@ class SupabaseStorageService{
         $fileName=strtolower($fileTitle) . '-' . time() . '.' . $ext;
         $path="course_materials/courses/" . strtolower($courseTitle) . "/" . strtolower($sectionTitle) . "/" . $fileName;
 
-        $this->disk->put($path,file_get_contents($file));
+        $this->disk->put(
+            $path,
+            fopen($file->getRealPath(), 'r'),
+            ['ContentType' => $file->getMimeType()]
+        );
 
         return $path;
     }
@@ -57,7 +65,11 @@ class SupabaseStorageService{
         $filename=strtolower($fileTitle) . '-' . time() . '.' . $ext;
         $path="session_materials/session_" . strval($session_id) . "/" . $filename;
 
-        $this->disk->put($path,file_get_contents($file));
+        $this->disk->put(
+            $path,
+            fopen($file->getRealPath(), 'r'),
+            ['ContentType' => $file->getMimeType()]
+        );
 
         return $path;
     }
@@ -67,7 +79,11 @@ class SupabaseStorageService{
         $fileName=strtolower($fileTitle) . '-' . time() . '.' . $ext;
         $path="ai_chat_documents/" . strval($user_id) . "/" . $fileName;
 
-        $this->disk->put($path,file_get_contents($file));
+        $this->disk->put(
+            $path,
+            fopen($file->getRealPath(), 'r'),
+            ['ContentType' => $file->getMimeType()]
+        );
 
         return $path;
     }
@@ -83,7 +99,11 @@ class SupabaseStorageService{
         $fileName=$filename . '.' . $ext;
         $path="chats/" . $fileName;
 
-        $this->disk->put($path,file_get_contents($file));
+        $this->disk->put(
+            $path,
+            fopen($file->getRealPath(), 'r'),
+            ['ContentType' => $file->getMimeType()]
+        );
 
         return $path;
     }

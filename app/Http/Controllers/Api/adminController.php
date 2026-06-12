@@ -10,12 +10,6 @@ use Illuminate\Http\Request;
 class adminController extends Controller
 {
     public function getUsers(Request $reques,SupabaseStorageService $storage){
-        $user=auth('sanctum')->user();
-        if(!$user || $user->role !='admin'){
-            return response()->json([
-                "message"=>"Unauthorized Access"
-            ],401);
-        }
         $users=User::with("subscription.plan")->where('role','!=','admin')->orderBy("created_at")
             ->paginate(4)->through(function($users) use($storage){
                 if($users->avatar){
@@ -43,13 +37,6 @@ class adminController extends Controller
             "user_id"=>"required|exists:users,id"
         ]);
 
-        $user=auth('sanctum')->user();
-        if(!$user || $user->role !='admin'){
-            return response()->json([
-                "message"=>"Unauthorized Access"
-            ],401);
-        }
-        
         $targetedUser=User::whereId($request->user_id)->first();
         if(!$targetedUser){
             return response()->json([
@@ -76,13 +63,6 @@ class adminController extends Controller
             "user_id"=>"required|exists:users,id"
         ]);
 
-        $user=auth('sanctum')->user();
-        if(!$user || $user->role !='admin'){
-            return response()->json([
-                "message"=>"Unauthorized Access"
-            ],401);
-        }
-        
         $targetedUser=User::whereId($request->user_id)->first();
         if(!$targetedUser){
             return response()->json([

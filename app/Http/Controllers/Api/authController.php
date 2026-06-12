@@ -57,7 +57,7 @@ class authController extends Controller
         $token=$user->createToken('api_token')->plainTextToken;
 
         // send welcome email
-        Mail::to($user->email)->send(new WelcomeMail($user));
+        Mail::to($user->email)->queue(new WelcomeMail($user));
 
         return response()->json([
             'message'=>'User registered successfully',
@@ -66,7 +66,7 @@ class authController extends Controller
         ],201);
     }
 
-    public function login(Request $request){
+    public function login(Request $request, SupabaseStorageService $storage){
         $request->validate([
             'email'=>'required|string|email',
             'password'=>'required|string|min:8',
@@ -86,9 +86,9 @@ class authController extends Controller
         }
 
         // update user avatar
-        $avatarUrl=$user->avatar ? (new SupabaseStorageService)->getPublicUrl($user->avatar) : null;
-        $user->avatar=$avatarUrl;
-        $user->save();
+        if($user->avatar){
+            $user->avatar=$storage->getPublicUrl($user->avatar);
+        }
         
         $token=$user->createToken('api_token')->plainTextToken;
 
@@ -112,7 +112,7 @@ class authController extends Controller
         ],200); 
     }
 
-    public function checkAuth(Request $request){
+    public function checkAuth(Request $request, SupabaseStorageService $storage){
         $user=$request->user();
         if(!$user){
             return response()->json([
@@ -127,9 +127,9 @@ class authController extends Controller
         }
 
         // update user avatar
-        $avatarUrl=$user->avatar ? (new SupabaseStorageService)->getPublicUrl($user->avatar) : null;
-        $user->avatar=$avatarUrl;
-        $user->save();
+        if($user->avatar){
+            $user->avatar=$storage->getPublicUrl($user->avatar);
+        }
 
         return response()->json([
             'user'=>$user,

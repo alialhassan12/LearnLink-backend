@@ -26,18 +26,6 @@ class plansController extends Controller
             'status'=>"required|in:active,inactive"
         ]);
 
-        $user=auth('sanctum')->user();
-        if(!$user){
-            return response()->json([
-                "message"=>"Unauthenticated"
-            ],401);
-        }
-        if($user->role!='admin'){
-            return response()->json([
-                "message"=>"Unauthorized Access"
-            ],403);
-        }
-
         $plan=Plan::create([
             "title"=>$request->title,
             "description"=>$request->description,
@@ -56,18 +44,6 @@ class plansController extends Controller
     }
 
     public function getAllPlans(){
-        $user=auth('sanctum')->user();
-        if(!$user){
-            return response()->json([
-                "message"=>"Unauthenticated"
-            ],401);
-        }
-        if($user->role!="admin"){
-            return response()->json([
-                "message"=>"Unauthorized Access"
-            ],403);
-        }
-
         $plans=Plan::all();
         return response()->json([
             "message"=>"Plans fetched successfully",

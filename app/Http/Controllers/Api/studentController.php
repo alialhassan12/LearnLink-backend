@@ -49,7 +49,7 @@ class studentController extends Controller
         return response()->json([
             "message"=>"Student details fetched successfully",
             "student"=>$student,
-            "completedSessions"=>$completedSessions->count()
+            "completed_sessions"=>$completedSessions->count()
         ]);
     }
 }
