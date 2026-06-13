@@ -92,23 +92,21 @@ class teacherController extends Controller
             ]);
         }
         
-        if($request->has('subjects') && count($request->subjects)>0){
-            $teacher->update([
-                'subjects'=>$request->subjects,
-            ]);
-        }
-        if($request->has('languages') && count($request->languages)>0){
-            $teacher->update([
-                'languages'=>$request->languages,
-            ]);
-        }
-
-        $teacher->update([
+        $teacherData = [
             'headline'=>$request->headline,
             'location'=>$request->location,
             'bio'=>$request->bio,
             'hourly_rate'=>$request->hourly_rate,
-        ]);
+        ];
+
+        if($request->has('subjects') && count($request->subjects)>0){
+            $teacherData['subjects'] = $request->subjects;
+        }
+        if($request->has('languages') && count($request->languages)>0){
+            $teacherData['languages'] = $request->languages;
+        }
+
+        $teacher->fill($teacherData);
         
         if($request->has('availability')){
             $teacher->availabilities()->delete();

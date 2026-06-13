@@ -78,7 +78,9 @@ class courseEnrollmentController extends Controller
             ],403);
         }
 
-        $enrollments=CourseEnrollment::where('student_id',$student->id)->with('course.teacher.user','course.category')->get();
+        $enrollments=CourseEnrollment::where('student_id',$student->id)
+            ->with('course.teacher.user','course.category')
+            ->paginate(6);
         
         foreach($enrollments as $enrollment){
             if($enrollment->course->thumbnail){
@@ -91,7 +93,13 @@ class courseEnrollmentController extends Controller
 
         return response()->json([
             "message"=>"Enrolled courses retrieved successfully",
-            "enrollments"=>$enrollments
+            "enrollments"=>$enrollments,
+            "pagination"=>[
+                "current_page"=>$enrollments->currentPage(),
+                "per_page"=>$enrollments->perPage(),
+                "total"=>$enrollments->total(),
+                "last_page"=>$enrollments->lastPage(),
+            ]
         ],200);
     }
 }

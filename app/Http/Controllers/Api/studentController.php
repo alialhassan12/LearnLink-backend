@@ -23,33 +23,23 @@ class studentController extends Controller
             ],403);
         }
 
-        $sessions = Booking::where('student_id', $student->id)
-        ->where('status', 'approved')
-        ->with('liveSession','teacher.user')->get();
-
-        $completedSessions=$sessions->filter(function($session){
-            return $session->liveSession->status==='completed';
-        });
-        
-        
+        $completedSessionsCount = Booking::where('student_id', $student->id)
+            ->where('status', 'approved')
+            ->whereHas('liveSession', function($query) {
+                $query->where('status', 'completed');
+            })
+            ->count();
 
         $student->load('user');
 
         if($student->user && $student->user->avatar){
             $student->user->avatar = $storage->getPublicUrl($student->user->avatar);
         }
-        if($sessions->count()>0){
-            $sessions->each(function($session) use($storage){
-                if($session->teacher->user && $session->teacher->user->avatar){
-                    $session->teacher->user->avatar = $storage->getPublicUrl($session->teacher->user->avatar);
-                }
-            });
-        }
 
         return response()->json([
             "message"=>"Student details fetched successfully",
             "student"=>$student,
-            "completed_sessions"=>$completedSessions->count()
+            "completed_sessions"=>$completedSessionsCount
         ]);
     }
 }

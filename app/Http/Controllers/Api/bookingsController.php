@@ -128,7 +128,10 @@ class bookingsController extends Controller
             ], 401);
         }
 
-        $bookings = Booking::with('teacher.user')->where('student_id', $student->id)->orderBy('scheduled_date', 'asc')->get();
+        $bookings = Booking::with('teacher.user')
+                        ->where('student_id', $student->id)
+                        ->orderBy('scheduled_date', 'asc')
+                        ->paginate(6);
 
         foreach ($bookings as $booking) {
             if ($booking->teacher->user->avatar) {
@@ -139,6 +142,15 @@ class bookingsController extends Controller
         return response()->json([
             'message' => 'Bookings fetched successfully',
             'bookings' => $bookings,
+            'pagination' => [
+                'total' => $bookings->total(),
+                'per_page' => $bookings->perPage(),
+                'current_page' => $bookings->currentPage(),
+                'last_page' => $bookings->lastPage(),
+                'has_more' => $bookings->hasMorePages(),
+                'from' => $bookings->firstItem(),
+                'to' => $bookings->lastItem(),
+            ],
         ], 200);
     }
 
@@ -201,12 +213,22 @@ class bookingsController extends Controller
             ], 401);
         }
 
-        // load subscription and plan to avoid n+1 query issue
-        $user->load('subscription.plan');
-        $max_live_sessions = $user->subscription->plan->features['sessions_per_month'];
-        $current_live_sessions = $subscriptionService->getLiveSessionsCreatedCount($user, $user->subscription);
+        // load active subscription and plan to avoid n+1 query issue
+        $user->load(['subscription' => function ($query) {
+            $query->where('status', 'active')->with('plan');
+        }]);
 
-        if ($current_live_sessions >= $max_live_sessions) {
+        $subscription = $user->subscription;
+        if (!$subscription || !$subscription->plan) {
+            return response()->json([
+                'message' => 'You do not have an active subscription plan. Please subscribe to approve bookings.',
+            ], 400);
+        }
+
+        $max_live_sessions = $subscription->plan->features['sessions_per_month'] ?? 0;
+        $current_live_sessions = $subscriptionService->getLiveSessionsCreatedCount($user, $subscription);
+
+        if ($max_live_sessions !== -1 && $current_live_sessions >= $max_live_sessions) {
             return response()->json([
                 'message' => 'You have reached the maximum number of live sessions allowed per month. Please upgrade your subscription plan or wait for the next month.',
             ], 429);
@@ -224,7 +246,7 @@ class bookingsController extends Controller
             ], 400);
         }
 
-        DB::transaction(function () use ($booking, $teacher) {
+        DB::transaction(function () use ($booking) {
             LiveSession::create([
                 'booking_id' => $booking->id,
                 'scheduled_date' => $booking->scheduled_date,
@@ -238,7 +260,6 @@ class bookingsController extends Controller
             $booking->save();
         });
 
-        // $booking->load('student.user');
         if ($booking->student->user->avatar) {
             $booking->student->user->avatar = $storage->getPublicUrl($booking->student->user->avatar);
         }

@@ -25,8 +25,8 @@ class AiService
     public function generate(string $prompt){
         
         // Google Ai response
-        $response=Http::connectTimeout(120)
-                ->timeout(120)
+        $response=Http::connectTimeout(10)
+                ->timeout(60)
                 ->post($this->googleAiUrl.$this->googleAiApiKey,[
                     "contents"=>[
                         "parts"=>[
@@ -57,8 +57,8 @@ class AiService
         $fileType=$file->getMimeType();
 
         if(str_starts_with($fileType,'image/')){
-            $response=Http::connectTimeout(120)
-                    ->timeout(120)
+            $response=Http::connectTimeout(10)
+                    ->timeout(60)
                     ->post($this->googleAiUrl.$this->googleAiApiKey,[
                         "contents"=>[
                             "parts"=>[

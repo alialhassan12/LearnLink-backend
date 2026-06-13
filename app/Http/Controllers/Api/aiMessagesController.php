@@ -213,10 +213,9 @@ class aiMessagesController extends Controller
             ],200);
         
         }catch(\Throwable $e){
+            Log::error('AI message with file failed', ['error' => $e]);
             return response()->json([
-                "message"=>$e->getMessage(),
-                "line"=>$e->getLine(),
-                "file"=>$e->getFile()
+                "message"=>"An error occurred while processing your request"
             ],500);
         }
     }
