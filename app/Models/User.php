@@ -40,7 +40,7 @@ class User extends Authenticatable
             'id',
             'id',
             'conversation_id'
-        )->with('participants')->with('lastMessage')->orderBy('updated_at','desc');
+        )->with('participants.user')->with('lastMessage.sender')->orderBy('updated_at','desc');
     }
 
     public function subscription(){

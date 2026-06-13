@@ -457,6 +457,8 @@ class coursesController extends Controller
                 "per_page"=>$courses->perPage(),
                 "total"=>$courses->total(),
                 "last_page"=>$courses->lastPage(),
+                "from"=>$courses->firstItem(),
+                "to"=>$courses->lastItem(),
             ]
         ],200);
     }

@@ -58,9 +58,9 @@ class bookingsController extends Controller
         ], 200);
     }
 
-    public function getTeacherBookings(Request $request, SupabaseStorageService $storage, SubscriptionService $subscriptionService)
+    public function getTeacherBookings(SupabaseStorageService $storage, SubscriptionService $subscriptionService)
     {
-        $user = $request->user();
+        $user = auth('sanctum')->user();
         if (!$user) {
             return response()->json([
                 'message' => 'Unauthorized Access',
@@ -83,7 +83,11 @@ class bookingsController extends Controller
         $current_live_sessions = $subscriptionService->getLiveSessionsCreatedCount($user, $subscription);
 
 
-        $bookings = Booking::with('student.user')->where('teacher_id', $teacher->id)->orderBy('scheduled_date', 'asc')->get();
+        $bookings = Booking::with('student.user')
+                        ->where('teacher_id', $teacher->id)
+                        ->orderBy('scheduled_date', 'asc')
+                        ->paginate(6);
+
 
         foreach ($bookings as $booking) {
             if ($booking->student->user->avatar) {
@@ -95,13 +99,22 @@ class bookingsController extends Controller
             'message' => 'Bookings fetched successfully',
             'bookings' => $bookings,
             'max_live_sessions' => $max_live_sessions,
-            'current_live_sessions' => $current_live_sessions
+            'current_live_sessions' => $current_live_sessions,
+            'pagination' => [
+                'total' => $bookings->total(),
+                'per_page' => $bookings->perPage(),
+                'current_page' => $bookings->currentPage(),
+                'last_page' => $bookings->lastPage(),
+                'has_more' => $bookings->hasMorePages(),
+                'from' => $bookings->firstItem(),
+                'to' => $bookings->lastItem(),
+            ],
         ], 200);
     }
 
     public function getStudentBookings(Request $request, SupabaseStorageService $storage)
     {
-        $user = $request->user();
+        $user = auth('sanctum')->user();
         if (!$user) {
             return response()->json([
                 'message' => 'Unauthorized Access',
