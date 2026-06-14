@@ -214,7 +214,13 @@ class teacherController extends Controller
     }
     
     public function getTeacherById(Request $request,SupabaseStorageService $storage,$id){
-        $teacher=Teacher::with('user','publishedCourses','availabilities')->whereId($id)->first();
+        $teacher=Teacher::with([
+                'user',
+                'availabilities',
+                'publishedCourses'=>function($query){
+                    $query->orderBy('created_at','desc')->limit(1);
+                }
+        ])->find($id);
 
         if(!$teacher){
             return response()->json([
