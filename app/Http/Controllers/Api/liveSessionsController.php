@@ -183,7 +183,7 @@ class liveSessionsController extends Controller
     }
 
     public function getStudentSessionById(Request $request,SupabaseStorageService $storage,int $id){
-        $user=$request->user();
+        $user=auth('sanctum')->user();
         if(!$user){
             return response()->json([
                 "message"=>"Unauthorized"
