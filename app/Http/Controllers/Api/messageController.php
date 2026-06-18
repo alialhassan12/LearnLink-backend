@@ -92,9 +92,6 @@ class messageController extends Controller
             if ($message->file_url) {
                 $message->file_url = $storage->getPublicUrl($message->file_url);
             }
-            if ($message->sender->avatar) {
-                $message->sender->avatar = $storage->getPublicUrl($message->sender->avatar);
-            }
         }
 
         return response()->json([

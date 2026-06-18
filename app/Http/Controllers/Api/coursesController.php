@@ -420,11 +420,6 @@ class coursesController extends Controller
         //     ],404);
         // }
 
-        // Add public url to thumbnail
-        $courses->each(function($course) use ($storage){
-            $course->thumbnail=$storage->getPublicUrl($course->thumbnail);
-        });
-
         return response()->json([
             "success"=>true,
             "message"=>"Courses fetched successfully",
@@ -438,16 +433,7 @@ class coursesController extends Controller
                 ->with('teacher.user','category')
                 ->where('status','published')
                 ->orderBy('created_at','desc')
-                ->paginate(10)
-                ->through(function($course) use ($storage){
-                    if($course->thumbnail){
-                        $course->thumbnail=$storage->getPublicUrl($course->thumbnail);
-                    }
-                    if($course->teacher->user->avatar){
-                        $course->teacher->user->avatar=$storage->getPublicUrl($course->teacher->user->avatar);
-                    }
-                    return $course;
-                });
+                ->paginate(10);
 
         return response()->json([
             "message"=>"Courses fetched successfully",
@@ -474,13 +460,6 @@ class coursesController extends Controller
             ],404);
         }
 
-        if($course->thumbnail){
-            $course->thumbnail=$storage->getPublicUrl($course->thumbnail);
-        }
-        if($course->teacher->user->avatar){
-            $course->teacher->user->avatar=$storage->getPublicUrl($course->teacher->user->avatar);
-        }
-
         if($course->sections){
             foreach($course->sections as $sectionData){
                 if($sectionData->materials){
@@ -500,18 +479,11 @@ class coursesController extends Controller
     }
 
     public function getCourseById($id,Request $request,SupabaseStorageService $storage){
-        $course=Course::whereId($id)->with('teacher.user','category','sections.materials')->first();
+        $course=Course::whereId($id)->with('teacher.user','category','sections')->first();
         if(!$course){
             return response()->json([
                 'message'=>'No course found'
             ],404);
-        }
-
-        if($course->thumbnail){
-            $course->thumbnail=$storage->getPublicUrl($course->thumbnail);
-        }
-        if($course->teacher->user->avatar){
-            $course->teacher->user->avatar=$storage->getPublicUrl($course->teacher->user->avatar);
         }
 
         return response()->json([
@@ -539,16 +511,7 @@ class coursesController extends Controller
             $courses->whereBetween('price',$request->price_range);
         }
 
-        $courses=$courses->paginate(10)
-            ->through(function($course) use ($storage){
-                if($course->thumbnail){
-                    $course->thumbnail=$storage->getPublicUrl($course->thumbnail);
-                }
-                if($course->teacher->user->avatar){
-                    $course->teacher->user->avatar=$storage->getPublicUrl($course->teacher->user->avatar);
-                }
-                return $course;
-            });
+        $courses=$courses->paginate(10);
 
         return response()->json([
             "message"=>"Courses fetched successfully",
@@ -594,10 +557,6 @@ class coursesController extends Controller
         $course->update([
             "status"=>$request->status
         ]);
-
-        if($course->thumbnail){
-            $course->thumbnail=$storage->getPublicUrl($course->thumbnail);
-        }
 
         return response()->json([
             "success"=>true,

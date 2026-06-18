@@ -84,11 +84,6 @@ class authController extends Controller
                 'message'=>'Your account has been suspended. Contact support for more information',
             ],403);
         }
-
-        // update user avatar
-        if($user->avatar){
-            $user->avatar=$storage->getPublicUrl($user->avatar);
-        }
         
         $token=$user->createToken('api_token')->plainTextToken;
 
@@ -124,11 +119,6 @@ class authController extends Controller
             return response()->json([
                 'message'=>'Your account has been suspended. Contact support for more information',
             ],403);
-        }
-
-        // update user avatar
-        if($user->avatar){
-            $user->avatar=$storage->getPublicUrl($user->avatar);
         }
 
         return response()->json([

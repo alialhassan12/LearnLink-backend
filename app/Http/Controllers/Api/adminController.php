@@ -11,12 +11,7 @@ class adminController extends Controller
 {
     public function getUsers(Request $reques,SupabaseStorageService $storage){
         $users=User::with("subscription.plan")->where('role','!=','admin')->orderBy("created_at")
-            ->paginate(4)->through(function($users) use($storage){
-                if($users->avatar){
-                    $users->avatar=$storage->getPublicUrl($users->avatar);
-                }
-                return $users;
-            });
+            ->paginate(4);
         
         return response()->json([
             "message"=>"Users retrieved successfully",

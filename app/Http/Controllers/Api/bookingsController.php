@@ -88,13 +88,6 @@ class bookingsController extends Controller
                         ->orderBy('scheduled_date', 'asc')
                         ->paginate(6);
 
-
-        foreach ($bookings as $booking) {
-            if ($booking->student->user->avatar) {
-                $booking->student->user->avatar = $storage->getPublicUrl($booking->student->user->avatar);
-            }
-        }
-
         return response()->json([
             'message' => 'Bookings fetched successfully',
             'bookings' => $bookings,
@@ -132,12 +125,6 @@ class bookingsController extends Controller
                         ->where('student_id', $student->id)
                         ->orderBy('scheduled_date', 'asc')
                         ->paginate(6);
-
-        foreach ($bookings as $booking) {
-            if ($booking->teacher->user->avatar) {
-                $booking->teacher->user->avatar = $storage->getPublicUrl($booking->teacher->user->avatar);
-            }
-        }
 
         return response()->json([
             'message' => 'Bookings fetched successfully',
@@ -184,9 +171,6 @@ class bookingsController extends Controller
         $booking->save();
 
         $booking->load('student.user');
-        if ($booking->student->user->avatar) {
-            $booking->student->user->avatar = $storage->getPublicUrl($booking->student->user->avatar);
-        }
 
         return response()->json([
             'message' => 'Booking rejected successfully',
@@ -259,10 +243,6 @@ class bookingsController extends Controller
             $booking->status = 'approved';
             $booking->save();
         });
-
-        if ($booking->student->user->avatar) {
-            $booking->student->user->avatar = $storage->getPublicUrl($booking->student->user->avatar);
-        }
 
         $current_live_sessions++;
 

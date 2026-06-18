@@ -23,11 +23,6 @@ class teacherController extends Controller
             ],404); 
         }
 
-
-        if($teacher->user && $teacher->user->avatar){
-            $teacher->user->avatar=$storage->getPublicUrl($teacher->user->avatar);
-        }
-
         return response()->json([
             'message'=>'Teacher profile found successfully',
             'teacher'=>$teacher,
@@ -122,26 +117,11 @@ class teacherController extends Controller
         $user->save();
         $teacher->save();
 
-        if($user->avatar){
-            $user->avatar=$storage->getPublicUrl($user->avatar);
-        }
-
+        $teacher->load('user');
+        
         return response()->json([
             'message'=>'Profile updated successfully',
-            'teacher'=>[
-                'name'=>$user->name,
-                'email'=>$user->email,
-                'avatar'=>$user->avatar,
-                'bio'=>$teacher->bio,
-                'headline'=>$teacher->headline,
-                'hourly_rate'=>$teacher->hourly_rate,
-                'subjects'=>$teacher->subjects,
-                'languages'=>$teacher->languages,
-                'availabilities'=>$teacher->load('availabilities'),
-                'created_at'=>$user->created_at,
-                'updated_at'=>$user->updated_at,
-                'courses_count'=>$teacher->courses->count(),
-            ],
+            'teacher'=>$teacher,
         ],200); 
     }
 

@@ -81,15 +81,6 @@ class courseEnrollmentController extends Controller
         $enrollments=CourseEnrollment::where('student_id',$student->id)
             ->with('course.teacher.user','course.category')
             ->paginate(6);
-        
-        foreach($enrollments as $enrollment){
-            if($enrollment->course->thumbnail){
-                $enrollment->course->thumbnail=$storage->getPublicUrl($enrollment->course->thumbnail);
-            }
-            if($enrollment->course->teacher->user->avatar){
-                $enrollment->course->teacher->user->avatar=$storage->getPublicUrl($enrollment->course->teacher->user->avatar);
-            }
-        }
 
         return response()->json([
             "message"=>"Enrolled courses retrieved successfully",

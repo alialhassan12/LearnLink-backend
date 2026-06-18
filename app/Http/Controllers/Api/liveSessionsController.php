@@ -96,10 +96,6 @@ class liveSessionsController extends Controller
         $bookings=$teacher->approvedBookings()->with('liveSession','student.user')->get();
         $live_sessions=[];
         foreach($bookings as $booking){
-            if($booking->student->user->avatar){
-                $avatar=$storage->getPublicUrl($booking->student->user->avatar);
-                $booking->student->user->avatar=$avatar;
-            }
             $session=$booking->liveSession;
             $session->student=$booking->student;
             $live_sessions[]=$session;

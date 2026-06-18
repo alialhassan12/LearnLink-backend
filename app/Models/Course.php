@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\SupabaseStorageService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 
@@ -9,6 +10,16 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 
 class Course extends Model
 {
+    protected $appends = ['thumbnail_url'];
+
+    public function getThumbnailUrlAttribute(){
+        if($this->thumbnail){
+            $storage=app(SupabaseStorageService::class);
+            return $storage->getPublicUrl($this->thumbnail);
+        }
+        return null;
+    }
+    
     // Relations
     public function teacher(){
         return $this->belongsTo(Teacher::class);

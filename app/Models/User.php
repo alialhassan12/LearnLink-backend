@@ -3,6 +3,8 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+
+use App\Services\SupabaseStorageService;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -22,6 +24,16 @@ class User extends Authenticatable
      *
      * @return array<string, string>
      */
+
+    protected $appends = ['avatar_url'];
+
+    public function getAvatarUrlAttribute(){
+        if($this->avatar){
+            $storage=app(SupabaseStorageService::class);
+            return $storage->getPublicUrl($this->avatar);
+        }
+        return null;
+    }
 
     // Relations
     public function student(){

@@ -18,14 +18,6 @@ class conversationsController extends Controller
         }
         $conversations=$user->conversations;
 
-        $conversations->each(function($conversation)use($storage){
-            $conversation->participants->each(function($participant)use($storage){
-                if($participant->user->avatar){
-                    $participant->user->avatar=$storage->getPublicUrl($participant->user->avatar);
-                }
-            });
-        });
-
         return response()->json([
             'conversations'=>$conversations,
         ],200);
