@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\aiMessagesController;
 use App\Http\Controllers\Api\aiRequestController;
 use App\Http\Controllers\Api\authController;
 use App\Http\Controllers\Api\bookingsController;
+use App\Http\Controllers\Api\calendarController;
 use App\Http\Controllers\Api\categoriesController;
 use App\Http\Controllers\Api\conversationsController;
 use App\Http\Controllers\Api\courseEnrollmentController;
@@ -69,6 +70,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/bookings/teacher-bookings',[bookingsController::class,'getTeacherBookings'])->name('get-teacher-bookings');
         Route::post('/bookings/reject-booking',[bookingsController::class,'rejectBooking'])->name('reject-booking');
         Route::post('/bookings/approve-booking',[bookingsController::class,'approveBooking'])->name('approve-booking');
+        Route::get('/calendar/get-events',[calendarController::class,'getTeacherCalendarEvents'])->name('get-teacher-calendar-events');
         Route::post('/live-session/end-session',[liveSessionsController::class,'endSession'])->name('teacher-end-session');
         Route::get('/live-sessions/teacher-sessions',[liveSessionsController::class,'getTeacherLiveSessions'])->name('get-teacher-sessions');
         Route::get('/live-sessions/teacher-session/{id}',[liveSessionsController::class,'getTeacherSessionById'])->name('get-teacher-session-by-id');
