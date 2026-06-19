@@ -97,5 +97,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/courses/enrolled-courses',[courseEnrollmentController::class,'getEnrolledCourses'])->name('get-enrolled-courses');
         Route::get('/courses/download-material/{id}',[coursesController::class,'downloadCourseMaterial'])->name('download-course-material');
         Route::get('/student/profile',[studentController::class,'getStudent'])->name('get-student-profile');
+        Route::put('/student/update-profile',[studentController::class,'editStudentProfile'])->name('edit-student-profile');
     });
 });

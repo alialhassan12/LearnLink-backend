@@ -8,6 +8,7 @@ use App\Models\CourseEnrollment;
 use App\Models\Student;
 use App\Services\SupabaseStorageService;
 use Illuminate\Http\Request;
+use stdClass;
 
 class studentController extends Controller
 {
@@ -42,7 +43,7 @@ class studentController extends Controller
             ],403);
         }
 
-        $upcommingSessions=Booking::with('liveSession.course.teacher.user')->where('student_id', $student->id)->where('status', 'approved')->whereHas('liveSession', function($query) {
+        $upcommingSessions=Booking::with('liveSession.teacher.user')->where('student_id', $student->id)->where('status', 'approved')->whereHas('liveSession', function($query) {
             $query->where('status','booked');
         })->limit(2)->get();
 
@@ -57,5 +58,56 @@ class studentController extends Controller
             "upcomming_sessions"=>$upcommingSessions,
             "enrolled_courses"=>$enrolledCourses
         ]);
+    }
+
+    public function editStudentProfile(Request $request,SupabaseStorageService $storage){
+        $request->validate([
+            "name"=>"string",
+            "headline"=>"string",
+            "avatar"=>"file|max:2048|mimes:jpg,jpeg,png,webp"
+        ]);
+
+        $user=$request->user();
+        if(!$user){
+            return response()->json([
+                "message"=>"Unauthenticated"
+            ],401);
+        }
+        $student=Student::where('user_id',$user->id)->first();
+        if(!$student){
+            return response()->json([
+                "message"=>"Unauthorized"
+            ],403);
+        }
+
+        if($request->hasFile('avatar')){
+            $avatar=$request->file('avatar');
+            $avatarPath=$storage->uploadAvatar($avatar,$user->id,$user->avatar);
+            $user->update([
+                'name'=>$request->name,
+                'avatar'=>$avatarPath,
+            ]);
+        }else{
+            $user->update([
+                'name'=>$request->name,
+            ]);
+        }
+
+        $studentData=[
+            'headline'=>$request->headline,
+            'bio'=>$request->bio
+        ];
+        
+        $student->update($studentData);
+        
+        $user->save();
+        $student->save();
+        
+        $student->load('user');
+
+        return response()->json([
+            "message"=>"Profile updated successfully",
+            "student"=>$student,
+        ],200);
     }
 }
