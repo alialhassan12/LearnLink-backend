@@ -50,4 +50,17 @@ class plansController extends Controller
             "plans"=>$plans
         ],200);
     }
+
+    public function getAllActivePlans(){
+        $plans=Plan::where('status','active')
+                ->get();
+        return response()->json([
+            "message"=>"Active plans fetched successfully",
+            "plans"=>$plans
+        ],200);
+    }
+
+    public function updatePlan(Request $request,$id){
+        
+    }
 }

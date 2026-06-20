@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\messageController;
 use App\Http\Controllers\Api\plansController;
 use App\Http\Controllers\Api\sessionMaterialsController;
 use App\Http\Controllers\Api\studentController;
+use App\Http\Controllers\Api\subscriptionsController;
 use App\Http\Controllers\Api\teacherController;
 use App\Models\LiveSession;
 use Illuminate\Support\Facades\Route;
@@ -33,16 +34,24 @@ Route::middleware('auth:sanctum')->group(function () {
     // common routes between roles
     Route::post('/auth/logout',[authController::class,'logout'])->name('logout_user');
     Route::get('/auth/me',[authController::class,'checkAuth'])->name('check_auth');
+    
     Route::get('/categories',[categoriesController::class,'getCategories'])->name('get_categories');
+    
     Route::get('/courses/course/{id}',[coursesController::class,'getCourseWithMaterialsById'])->name('get-course-with-materials-by-id');
+    
     Route::post('/livekit/token',[liveSessionsController::class,'getToken'])->name('get_livekit_token');
+    
     Route::post('/messages/send',[messageController::class,'send'])->name('send-message');
     Route::get('/messages/conversations',[conversationsController::class,'getConversations'])->name('get-conversations');
     Route::post('/messages/conversation',[messageController::class,'getMessagesByConversation'])->name('get-messages');
+    
     Route::post('/ai/messages',[aiMessagesController::class,'getMessages'])->name('get-ai-messages');
     Route::get('/ai/chats',[aiChatController::class,'getChats'])->name('get-user-ai-chats');
     Route::post('/ai/messages/new',[aiMessagesController::class,'sendMessage'])->name('send-ai-message');
     Route::post('/ai/messages-with-file/new',[aiMessagesController::class,'sendMessageWithFile'])->name('send-ai-message-with-file');
+    
+    Route::get('/plans',[plansController::class,'getAllActivePlans'])->name('get-all-active-plans');
+    Route::post('/plans/subscription/upgrade',[subscriptionsController::class,'upgradeSubscription'])->name('upgrade-subscription');
 
     // admin routes
     Route::middleware(['checkRole:admin'])->group(function(){

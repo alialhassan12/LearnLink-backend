@@ -26,6 +26,7 @@ class calendarController extends Controller
 
         //get upcomming sessions
         $upcommingSession=Booking::where('teacher_id',$teacher->id)
+                    ->with('student.user')
                     ->where('status','approved')
                     ->whereDate('scheduled_date','>=',now()->toDateString())
                     ->orderBy('scheduled_date','asc')

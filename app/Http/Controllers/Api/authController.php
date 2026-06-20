@@ -59,6 +59,10 @@ class authController extends Controller
         // send welcome email
         Mail::to($user->email)->queue(new WelcomeMail($user));
 
+        if($user->role == 'student' || $user->role == 'teacher'){
+            $user->load('subscription.plan');
+        }
+
         return response()->json([
             'message'=>'User registered successfully',
             'user'=>$user,
@@ -86,6 +90,10 @@ class authController extends Controller
         }
         
         $token=$user->createToken('api_token')->plainTextToken;
+        
+        if($user->role == 'student' || $user->role == 'teacher'){
+            $user->load('subscription.plan');
+        }
 
         return response()->json([
             'message'=>'User logged in successfully',
@@ -119,6 +127,10 @@ class authController extends Controller
             return response()->json([
                 'message'=>'Your account has been suspended. Contact support for more information',
             ],403);
+        }
+
+        if($user->role == 'student' || $user->role == 'teacher'){
+            $user->load('subscription.plan');
         }
 
         return response()->json([

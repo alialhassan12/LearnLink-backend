@@ -372,6 +372,14 @@ class coursesController extends Controller
                     // Delete materials not included in the request
                     // Only delete if the materials key was explicitly sent in the request
                     if (isset($sectionData['materials'])) {
+                        $deletedMaterial=CourseMaterial::where('section_id', $section->id)
+                            ->whereNotIn('id', $providedMaterialIds)
+                            ->get();
+                        
+                        foreach($deletedMaterial as $material){
+                            $storage->deleteSessionMaterial($material->path);
+                        }
+
                         CourseMaterial::where('section_id', $section->id)
                             ->whereNotIn('id', $providedMaterialIds)
                             ->delete();
