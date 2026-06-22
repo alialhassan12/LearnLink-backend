@@ -126,30 +126,22 @@ class teacherController extends Controller
     }
 
     public function getTeachers(Request $request,SupabaseStorageService $storage){
+        // $teachers=Teacher::query()
+        //         ->with('user.subscription.plan')
+        //         ->withCount('publishedCourses')
+        //         ->orderBy('created_at','desc')
+        //         ->paginate(10);
+
         $teachers=Teacher::query()
-                ->with('user')
+                ->select("teachers.*")
+                ->join('users','teachers.user_id','=','users.id')
+                ->join('subscriptions','users.id','=','subscriptions.user_id')
+                ->join('plans','subscriptions.plan_id','=','plans.id')
+                ->with('user.subscription.plan')
                 ->withCount('publishedCourses')
-                ->orderBy('created_at','desc')
-                ->paginate(10)
-                ->through(function($teacher) use ($storage){
-                    if($teacher->user->avatar){
-                        $teacher->user->avatar=$storage->getPublicUrl($teacher->user->avatar);
-                    }
-                    return [
-                        'id'=>$teacher->id,
-                        'name'=>$teacher->user->name,
-                        'email'=>$teacher->user->email,
-                        'avatar'=>$teacher->user->avatar,
-                        'bio'=>$teacher->bio,
-                        'headline'=>$teacher->headline,
-                        'hourly_rate'=>$teacher->hourly_rate,
-                        'subjects'=>$teacher->subjects,
-                        'languages'=>$teacher->languages,
-                        'created_at'=>$teacher->user->created_at,
-                        'updated_at'=>$teacher->user->updated_at,
-                        'courses_count'=>$teacher->published_courses_count,
-                    ];
-                });
+                ->orderBy('plans.features->search_priority', 'desc')
+                ->orderBy('teachers.created_at','desc')
+                ->paginate(10);
 
         return response()->json([
             'message'=>'Teachers fetched successfully',
@@ -233,9 +225,14 @@ class teacherController extends Controller
         ]);
 
         $query=Teacher::query()
-                ->with('user')
+                ->select('teachers.*')
+                ->join('users','teachers.user_id','=','users.id')
+                ->join('subscriptions','users.id','=','subscriptions.user_id')
+                ->join('plans','subscriptions.plan_id','=','plans.id')
+                ->with('user.subscription.plan')
                 ->withCount('publishedCourses')
-                ->orderBy('created_at','desc');
+                ->orderBy('plans.features->search_priority', 'desc')
+                ->orderBy('teachers.created_at','desc');
         
         if($request->has('subjects') && count($request->subjects)>0){
             $query->where(function($q) use ($request){
@@ -257,26 +254,7 @@ class teacherController extends Controller
         //     $query->where('rating','>=',$request->rating);
         // }
 
-        $teachers=$query->paginate(10)
-                ->through(function($teacher) use ($storage){
-                    if($teacher->user->avatar){
-                        $teacher->user->avatar=$storage->getPublicUrl($teacher->user->avatar);
-                    }
-                    return [
-                        'id'=>$teacher->id,
-                        'name'=>$teacher->user->name,
-                        'email'=>$teacher->user->email,
-                        'avatar'=>$teacher->user->avatar,
-                        'bio'=>$teacher->bio,
-                        'headline'=>$teacher->headline,
-                        'hourly_rate'=>$teacher->hourly_rate,
-                        'subjects'=>$teacher->subjects,
-                        'languages'=>$teacher->languages,
-                        'created_at'=>$teacher->user->created_at,
-                        'updated_at'=>$teacher->user->updated_at,
-                        'courses_count'=>$teacher->published_courses_count,
-                    ];
-                });
+        $teachers=$query->paginate(10);
 
         return response()->json([
             'message'=>'Teachers fetched successfully',

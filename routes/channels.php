@@ -12,3 +12,10 @@ Broadcast::channel(
             ->exists();
     }
 );
+
+Broadcast::channel(
+    'user.{userId}',
+    function($user,$userId){
+        return $user->id==$userId;
+    }
+);

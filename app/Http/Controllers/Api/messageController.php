@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Events\MessageSent;
+use App\Events\ConversationUpdated;
 use App\Http\Controllers\Controller;
 use App\Models\Message;
 use App\Services\SupabaseStorageService;
@@ -68,7 +69,9 @@ class messageController extends Controller
         });
 
 
-        broadcast(new MessageSent($message->load('sender')));
+        $loadedMessage = $message->load(['sender', 'conversation.participants']);
+        broadcast(new MessageSent($loadedMessage));
+        broadcast(new ConversationUpdated($loadedMessage));
 
         return response()->json([
             'message' => $message,
