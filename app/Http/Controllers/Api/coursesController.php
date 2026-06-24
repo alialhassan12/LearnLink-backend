@@ -459,7 +459,7 @@ class coursesController extends Controller
 
     public function getCourseWithMaterialsById($id,Request $request,SupabaseStorageService $storage){
         $course=Course::whereId($id)
-                        ->with('teacher.user','category','sections.materials')
+                        ->with('teacher.user','category','sections.materials','courseReviews.student.user')
                         ->withCount('enrollments')
                         ->first();
         if(!$course){

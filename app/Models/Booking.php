@@ -20,4 +20,8 @@ class Booking extends Model
     public function liveSession(){
         return $this->hasOne(LiveSession::class);
     }
+
+    public function sessionReview(){
+        return $this->hasOne(SessionReview::class);
+    }
 }

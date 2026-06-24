@@ -85,7 +85,7 @@ class bookingsController extends Controller
 
         $bookings = Booking::with('student.user')
                         ->where('teacher_id', $teacher->id)
-                        ->orderBy('scheduled_date', 'asc')
+                        ->orderBy('scheduled_date', 'desc')
                         ->paginate(6);
 
         return response()->json([
@@ -123,7 +123,7 @@ class bookingsController extends Controller
 
         $bookings = Booking::with('teacher.user')
                         ->where('student_id', $student->id)
-                        ->orderBy('scheduled_date', 'asc')
+                        ->orderBy('scheduled_date', 'desc')
                         ->paginate(6);
 
         return response()->json([

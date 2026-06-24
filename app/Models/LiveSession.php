@@ -26,4 +26,8 @@ class LiveSession extends Model
         return $this->hasMany(SessionMaterial::class);
     }
 
+    public function sessionReview(){
+        return $this->hasOne(SessionReview::class);
+    }
+
 }

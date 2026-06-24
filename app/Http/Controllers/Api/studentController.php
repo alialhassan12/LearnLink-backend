@@ -60,6 +60,25 @@ class studentController extends Controller
         ]);
     }
 
+    public function getLoggedInStudentId(){
+        $user=auth('sanctum')->user();
+        if(!$user){
+            return response()->json([
+                "message"=>"Unauthenticated"
+            ],401);
+        }
+        $student=Student::select('id')->where('user_id',$user->id)->first();
+        if(!$student){
+            return response()->json([
+                "message"=>"Unauthorized"
+            ],403);
+        }
+        return response()->json([
+            "message"=>"Student ID fetched successfully",
+            "student_id"=>$student->id
+        ]);
+    }
+
     public function editStudentProfile(Request $request,SupabaseStorageService $storage){
         $request->validate([
             "name"=>"string",

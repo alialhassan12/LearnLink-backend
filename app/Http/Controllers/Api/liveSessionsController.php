@@ -93,7 +93,7 @@ class liveSessionsController extends Controller
         $subscription = $user->subscription;
         $max_live_sessions = $subscription && $subscription->plan ? ($subscription->plan->features['sessions_per_month'] ?? 0) : 0;
 
-        $bookings=$teacher->approvedBookings()->with('liveSession','student.user')->get();
+        $bookings=$teacher->approvedBookings()->with('liveSession','student.user')->orderBy('scheduled_date','asc')->get();
         $live_sessions=[];
         foreach($bookings as $booking){
             $session=$booking->liveSession;
@@ -125,10 +125,6 @@ class liveSessionsController extends Controller
         $bookings=$student->approvedBookings()->with('liveSession','teacher.user')->get();
         $live_sessions=[];
         foreach($bookings as $booking){
-            if($booking->teacher->user->avatar){
-                $avatar=$storage->getPublicUrl($booking->teacher->user->avatar);
-                $booking->teacher->user->avatar=$avatar;
-            }
             $session=$booking->liveSession;
             $session->teacher=$booking->teacher;
             $live_sessions[]=$session;
@@ -156,16 +152,13 @@ class liveSessionsController extends Controller
             ],401);
         }
 
-        $session=LiveSession::where("id",$id)->with('sessionMaterials','student.user')->first();
+        $session=LiveSession::where("id",$id)->with('sessionMaterials','student.user','sessionReview')->first();
         if(!$session){
             return response()->json([
                 "message"=>"Session not found"
             ],404);
         }
 
-        if($session->student->user->avatar){
-            $session->student->user->avatar=$storage->getPublicUrl($session->student->user->avatar);
-        }
         if($session->sessionMaterials->count()>0){
             foreach($session->sessionMaterials as $material){
                 $material->file_url=$storage->getTemporaryUrl($material->file_url);
@@ -192,15 +185,11 @@ class liveSessionsController extends Controller
             ],401);
         }
         
-        $session=LiveSession::where("id",$id)->with("sessionMaterials","teacher.user")->first();
+        $session=LiveSession::where("id",$id)->with("sessionMaterials","teacher.user","sessionReview")->first();
         if(!$session){
             return response()->json([
                 "message"=>"Session not found"
             ],404);
-        }
-
-        if($session->teacher->user->avatar){
-            $session->teacher->user->avatar=$storage->getPublicUrl($session->teacher->user->avatar);
         }
 
         if($session->sessionMaterials->count()>0){
