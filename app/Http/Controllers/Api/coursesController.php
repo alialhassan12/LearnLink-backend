@@ -439,6 +439,8 @@ class coursesController extends Controller
     public function getCourses(Request $request, SupabaseStorageService $storage){
         $courses=Course::query()
                 ->with('teacher.user','category')
+                ->withCount('courseReviews')
+                ->withAvg('courseReviews','rating')
                 ->where('status','published')
                 ->orderBy('created_at','desc')
                 ->paginate(10);
@@ -487,7 +489,12 @@ class coursesController extends Controller
     }
 
     public function getCourseById($id,Request $request,SupabaseStorageService $storage){
-        $course=Course::whereId($id)->with('teacher.user','category','sections')->first();
+        $course=Course::whereId($id)
+                ->with('teacher.user','category','sections')
+                ->withCount('courseReviews')
+                ->withAvg('courseReviews','rating')
+                ->first();
+
         if(!$course){
             return response()->json([
                 'message'=>'No course found'

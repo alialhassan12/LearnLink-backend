@@ -126,22 +126,27 @@ class teacherController extends Controller
     }
 
     public function getTeachers(Request $request,SupabaseStorageService $storage){
-        // $teachers=Teacher::query()
-        //         ->with('user.subscription.plan')
-        //         ->withCount('publishedCourses')
-        //         ->orderBy('created_at','desc')
-        //         ->paginate(10);
-
         $teachers=Teacher::query()
                 ->select("teachers.*")
                 ->join('users','teachers.user_id','=','users.id')
                 ->join('subscriptions','users.id','=','subscriptions.user_id')
                 ->join('plans','subscriptions.plan_id','=','plans.id')
-                ->with('user.subscription.plan')
+                ->with('user.subscription.plan','liveSessions.sessionReview')
                 ->withCount('publishedCourses')
                 ->orderBy('plans.features->search_priority', 'desc')
                 ->orderBy('teachers.created_at','desc')
                 ->paginate(10);
+
+        // Transform the data to add the average rating to each teacher
+        $teachers->getCollection()->transform(function ($teacher) {
+            // Get the reviews of teacher from liveSessions
+            $reviews=$teacher->liveSessions->pluck('sessionReview')->filter();
+            
+            $teacher->avg_rating = round($reviews->avg('rating')??0,1);
+            $teacher->review_count = $reviews->count();
+            
+            return $teacher;
+        });
 
         return response()->json([
             'message'=>'Teachers fetched successfully',
@@ -191,8 +196,14 @@ class teacherController extends Controller
                 'availabilities',
                 'publishedCourses'=>function($query){
                     $query->orderBy('created_at','desc')->limit(1);
-                }
+                },
+                'liveSessions.sessionReview'
         ])->find($id);
+
+        // calculate avg rating and review count
+        $reviews=$teacher->liveSessions->pluck('sessionReview')->filter();
+        $teacher->avg_rating=round($reviews->avg('rating')??0,1);
+        $teacher->review_count=$reviews->count();
 
         if(!$teacher){
             return response()->json([
@@ -229,10 +240,19 @@ class teacherController extends Controller
                 ->join('users','teachers.user_id','=','users.id')
                 ->join('subscriptions','users.id','=','subscriptions.user_id')
                 ->join('plans','subscriptions.plan_id','=','plans.id')
-                ->with('user.subscription.plan')
+                ->with('user.subscription.plan','liveSessions.sessionReview')
                 ->withCount('publishedCourses')
                 ->orderBy('plans.features->search_priority', 'desc')
                 ->orderBy('teachers.created_at','desc');
+
+        $query->getCollection()->transform(function($teacher){
+            $reviews=$teacher->liveSessions->pluck('sessionReview')->filter();
+            
+            $teacher->avg_rating=round($reviews->avg('rating')??0,1);
+            $teacher->review_count=$reviews->count();
+            
+            return $teacher;
+        });
         
         if($request->has('subjects') && count($request->subjects)>0){
             $query->where(function($q) use ($request){

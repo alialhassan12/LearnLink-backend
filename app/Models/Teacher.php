@@ -36,6 +36,10 @@ class Teacher extends Model
         return $this->hasMany(Booking::class)->where('status','approved');
     }
 
+    public function liveSessions(){
+        return $this->hasManyThrough(LiveSession::class,Booking::class);
+    }
+
     // Casts
     protected function casts(): array{
         return [
