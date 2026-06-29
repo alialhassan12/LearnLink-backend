@@ -29,11 +29,15 @@ use Illuminate\Support\Facades\Broadcast;
 Broadcast::routes(['middleware' => ['auth:sanctum']]);
 
 // public routes
-Route::post('/auth/register',[authController::class,'register'])->name('register_new_user');
-Route::post('/auth/login',[authController::class,'login'])->name('login_user');
+Route::post('/auth/register',[authController::class,'register'])
+    ->middleware('throttle:auth')
+    ->name('register_new_user');
+Route::post('/auth/login',[authController::class,'login'])
+    ->middleware('throttle:auth')
+    ->name('login_user');
 
 // auth routes
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum','throttle:api'])->group(function () {
     // common routes between roles
     Route::post('/auth/logout',[authController::class,'logout'])->name('logout_user');
     Route::get('/auth/me',[authController::class,'checkAuth'])->name('check_auth');

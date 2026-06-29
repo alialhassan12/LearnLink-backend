@@ -47,7 +47,16 @@ class studentController extends Controller
             $query->where('status','booked');
         })->limit(2)->get();
 
-        $enrolledCourses=CourseEnrollment::with('course.teacher.user','course.category')->where('student_id', $student->id)->limit(2)->get();
+        $enrolledCourses=CourseEnrollment::with([
+            'course'=>function($query){
+                $query->with('teacher.user','category')
+                    ->withCount('courseReviews')
+                    ->withAvg('courseReviews','rating');
+            }
+        ])
+        ->where('student_id', $student->id)
+        ->limit(2)
+        ->get();
 
         return response()->json([
             "message"=>"Student details fetched successfully",
