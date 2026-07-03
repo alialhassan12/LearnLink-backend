@@ -16,7 +16,16 @@ class liveSessionsController extends Controller
             "room_name"=>"required|string",            
         ]);
 
-        $user=$request->user();
+        $user=auth('sanctum')->user();
+        if(!$user){
+            return response()->json([
+                "message"=>"Unauthorized"
+            ],401);
+        }
+
+        return response()->json([
+            "message"=>"inside get token function"
+        ],200);
 
         $token=$liveKit->generateToken(
             $request->room_name,
