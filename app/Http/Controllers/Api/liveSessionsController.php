@@ -96,9 +96,11 @@ class liveSessionsController extends Controller
         $bookings=$teacher->approvedBookings()->with('liveSession','student.user')->orderBy('scheduled_date','asc')->get();
         $live_sessions=[];
         foreach($bookings as $booking){
-            $session=$booking->liveSession;
-            $session->student=$booking->student;
-            $live_sessions[]=$session;
+            if($booking->liveSession){
+                $session=$booking->liveSession;
+                $session->student=$booking->student;
+                $live_sessions[]=$session;
+            }
         }
 
         return response()->json([

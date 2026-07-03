@@ -289,7 +289,7 @@ class coursesController extends Controller
                 foreach ($request->sections as $sectionData) {
                     $section = null;
 
-                    if (isset($sectionData['id']) && $sectionData['id']) {
+                    if (isset($sectionData['id']) && $sectionData['id'] && $sectionData['id']>0 ) {
                         $section = CourseSection::where('id', $sectionData['id'])
                             ->where('course_id', $course->id)
                             ->first();
@@ -318,7 +318,7 @@ class coursesController extends Controller
                             $materialPath = null;
 
                             // Attempt to fetch existing material if ID provided
-                            if (isset($materialData['id']) && $materialData['id']) {
+                            if (isset($materialData['id']) && $materialData['id'] && $materialData['id']>0) {
                                 $material = CourseMaterial::where('id', $materialData['id'])
                                     ->where('section_id', $section->id)
                                     ->first();
@@ -394,11 +394,6 @@ class coursesController extends Controller
 
             return $course->load('sections.materials');
         });
-
-        // load course thumbnail
-        if($updatedCourse->thumbnail){
-            $updatedCourse->thumbnail=$storage->getPublicUrl($updatedCourse->thumbnail);
-        }
 
         return response()->json([
             "message" => "Course updated successfully",

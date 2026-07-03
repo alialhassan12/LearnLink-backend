@@ -105,16 +105,22 @@ class teacherController extends Controller
         
         if($request->has('availability')){
             $teacher->availabilities()->delete();
+            $slots=[];
             foreach($request->availability as $slot){
-                $teacher->availabilities()->create([
+                $slots[]=[
+                    'teacher_id'=>$teacher->id,
                     'day_of_week'=>$slot['day_of_week'],
                     'start_time'=>$slot['start_time'],
                     'end_time'=>$slot['end_time'],
-                ]);
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+            }
+            if(!empty($slots)){
+                $teacher->availabilities()->insert($slots);
             }
         }
 
-        $user->save();
         $teacher->save();
 
         $teacher->load('user');
@@ -245,15 +251,6 @@ class teacherController extends Controller
                 ->orderBy('plans.features->search_priority', 'desc')
                 ->orderBy('teachers.created_at','desc');
 
-        $query->getCollection()->transform(function($teacher){
-            $reviews=$teacher->liveSessions->pluck('sessionReview')->filter();
-            
-            $teacher->avg_rating=round($reviews->avg('rating')??0,1);
-            $teacher->review_count=$reviews->count();
-            
-            return $teacher;
-        });
-        
         if($request->has('subjects') && count($request->subjects)>0){
             $query->where(function($q) use ($request){
                 foreach($request->subjects as $subject){
@@ -273,8 +270,17 @@ class teacherController extends Controller
         // if($request->has('rating') && $request->rating!=0){
         //     $query->where('rating','>=',$request->rating);
         // }
-
         $teachers=$query->paginate(10);
+        
+        $teachers->getCollection()->transform(function($teacher){
+            $reviews=$teacher->liveSessions->pluck('sessionReview')->filter();
+            
+            $teacher->avg_rating=round($reviews->avg('rating')??0,1);
+            $teacher->review_count=$reviews->count();
+            
+            return $teacher;
+        });
+
 
         return response()->json([
             'message'=>'Teachers fetched successfully',
