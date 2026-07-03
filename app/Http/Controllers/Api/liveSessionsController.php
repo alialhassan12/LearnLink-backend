@@ -23,10 +23,6 @@ class liveSessionsController extends Controller
             ],401);
         }
 
-        return response()->json([
-            "message"=>"inside get token function"
-        ],200);
-
         $token=$liveKit->generateToken(
             $request->room_name,
             $user->name
