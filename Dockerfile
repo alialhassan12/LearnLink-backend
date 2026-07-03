@@ -1,13 +1,14 @@
 FROM php:8.4-fpm-alpine
 
-# Install system dependencies
+# Install system dependencies (including Nginx)
 RUN apk add --no-cache \
     postgresql-dev \
     libxml2-dev \
     libzip-dev \
     zip \
     unzip \
-    git
+    git \
+    nginx
 
 # Install PHP extensions required by Laravel, PostgreSQL, and Reverb (pcntl)
 RUN docker-php-ext-install \
@@ -34,7 +35,15 @@ RUN composer install --no-dev --optimize-autoloader
 # Set permissions for Laravel directories
 RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 
-# Expose port 9000 for PHP-FPM
-EXPOSE 9000
+# Copy Nginx config and configure Nginx directory / user permissions
+RUN cp nginx.conf /etc/nginx/http.d/default.conf \
+    && mkdir -p /run/nginx \
+    && sed -i 's/user nginx;/user www-data;/g' /etc/nginx/nginx.conf
 
-CMD ["php-fpm"]
+# Configure startup script executable permission
+RUN chmod +x /var/www/start.sh
+
+# Expose HTTP port 80 (detected by Render)
+EXPOSE 80
+
+CMD ["/var/www/start.sh"]
