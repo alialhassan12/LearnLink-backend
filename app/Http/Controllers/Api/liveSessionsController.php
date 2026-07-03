@@ -23,10 +23,17 @@ class liveSessionsController extends Controller
             ],401);
         }
 
-        $token=$liveKit->generateToken(
-            $request->room_name,
-            $user->name
-        );
+        try {
+            $token=$liveKit->generateToken(
+                $request->room_name,
+                $user->name
+            );
+        } catch (\Throwable $e) {
+            return response()->json([
+                "message" => "Failed to generate LiveKit token",
+                "error" => $e->getMessage()
+            ], 500);
+        }
 
         return response()->json([
             "url"=>config('livekit.url'),

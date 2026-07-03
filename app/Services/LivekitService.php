@@ -13,19 +13,22 @@ class LiveKitService
         string $participantName
     ): string {
 
-        \dd("api_key=> ",config('livekit.api_key'),
-            "api_secret=> ",config('livekit.api_secret'),
-            "url=> ",config('livekit.url'));
-
         // 1. Define participant options (Identity and Name)
         $options = (new AccessTokenOptions())
             ->setIdentity($participantName)
             ->setName($participantName);
 
+        $apiKey = config('livekit.api_key');
+        $apiSecret = config('livekit.api_secret');
+
+        if (empty($apiKey) || empty($apiSecret)) {
+            throw new \InvalidArgumentException("LiveKit API Key or Secret is not configured. Please check LIVEKIT_API_KEY and LIVEKIT_API_SECRET in the production environment settings.");
+        }
+
         // 2. Initialize the Token with API credentials and options
         $token = new AccessToken(
-            config('livekit.api_key'),
-            config('livekit.api_secret'),
+            $apiKey,
+            $apiSecret,
             $options
         );
 
