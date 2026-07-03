@@ -4,14 +4,14 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\LiveSession;
-use App\Services\LiveKitService;
+use App\Services\LivekitService;
 use App\Services\SupabaseStorageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class liveSessionsController extends Controller
 {
-    public function getToken(Request $request, LiveKitService $liveKit){
+    public function getToken(Request $request, LivekitService $liveKit){
         $request->validate([
             "room_name"=>"required|string",            
         ]);

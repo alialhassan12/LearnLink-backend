@@ -6,7 +6,7 @@ use Agence104\LiveKit\AccessToken;
 use Agence104\LiveKit\AccessTokenOptions;
 use Agence104\LiveKit\VideoGrant;
 
-class LiveKitService
+class LivekitService
 {
     public function generateToken(
         string $roomName,
@@ -22,7 +22,7 @@ class LiveKitService
         $apiSecret = config('livekit.api_secret');
 
         if (empty($apiKey) || empty($apiSecret)) {
-            throw new \InvalidArgumentException("LiveKit API Key or Secret is not configured. Please check LIVEKIT_API_KEY and LIVEKIT_API_SECRET in the production environment settings.");
+            throw new \InvalidArgumentException("LiveKit key error");
         }
 
         // 2. Initialize the Token with API credentials and options
