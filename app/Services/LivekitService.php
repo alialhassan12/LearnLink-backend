@@ -13,6 +13,10 @@ class LiveKitService
         string $participantName
     ): string {
 
+        \dd("api_key=> ",config('livekit.api_key'),
+            "api_secret=> ",config('livekit.api_secret'),
+            "url=> ",config('livekit.url'));
+
         // 1. Define participant options (Identity and Name)
         $options = (new AccessTokenOptions())
             ->setIdentity($participantName)
