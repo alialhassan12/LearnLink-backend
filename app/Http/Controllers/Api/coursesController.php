@@ -14,10 +14,12 @@ use Illuminate\Contracts\Auth\SupportsBasicAuth;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class coursesController extends Controller
 {
     public function createCourse(Request $request,SupabaseStorageService $storage,SubscriptionService $subscriptionService){
+        Log::info("Enter course creation request");
         $request->validate([
             "category_id"=>"required|exists:categories,id",
             "title"=>"required|string",
@@ -36,6 +38,8 @@ class coursesController extends Controller
             "sections.*.materials.*.file"=>"required|file",
             "sections.*.materials.*.size"=>"required|integer",
         ]);
+
+        Log::info("Passed course validation");
 
         $user=$request->user();
         if(!$user){
@@ -60,14 +64,20 @@ class coursesController extends Controller
             ],403);
         }
 
+        Log::info("Passed authorization checks");
+
         $course=DB::transaction(function() use ($request,$teacher,$storage){
+            Log::info("Inside transaction");
             $thumbnailPath=$storage->uploadthumbnail(
                 $request->thumbnail,
                 $request->title,
             );
+            Log::info("Thumbnail uploaded");
             if(!$thumbnailPath){
                 throw new \Exception("Failed to upload thumbnail");
             }
+
+            Log::info("Thumbnail uploaded");
             $course=Course::create([
                 "teacher_id"=>$teacher->id,
                 "category_id"=>$request->category_id,
@@ -78,6 +88,8 @@ class coursesController extends Controller
                 "price"=>$request->price,
             ]);
 
+            Log::info("Course created");
+
             foreach ($request->sections as $sectionData) {
                 $section=CourseSection::create([
                     "course_id"=>$course->id,
@@ -85,13 +97,17 @@ class coursesController extends Controller
                     "order"=>$sectionData['order'],
                 ]);
 
+                Log::info("Section created");
+
                 foreach ($sectionData['materials'] as $materialData) {
+                    Log::info("start uploading materials ");
                     $materialPath=$storage->uploadSectionMaterials(
                         $materialData['file'],
                         $course->title,
                         $section->title,
                         $materialData['title']
                     );
+                    Log::info("Material uploaded");
 
                     CourseMaterial::create([
                         "section_id"=>$section->id,
@@ -100,19 +116,17 @@ class coursesController extends Controller
                         "type"=>$materialData['type'],
                         "size"=>$materialData['size'],
                     ]);
+                    Log::info("Material created");
                 }
             }
-            
+            Log::info("All materials uploaded");
             // make course published after successfully created
             $course->status="published";
             $course->save();
 
             return $course;
         });
-
-        if($course->thumbnail){
-            $course->thumbnail=$storage->getPublicUrl($course->thumbnail);
-        }
+        Log::info("Exited transaction");
 
         return response()->json([
             "success"=>true,
