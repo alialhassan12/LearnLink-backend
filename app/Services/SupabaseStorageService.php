@@ -23,11 +23,14 @@ class SupabaseStorageService{
         $fileName=strval($user_id) . '-' . time() . '.' . $ext;
         $path="avatars/users/" . $fileName;
         
-        $this->disk->put(
+        $result= $this->disk->put(
             $path,
             fopen($file->getRealPath(), 'r'),
             ['ContentType' => $file->getMimeType()]
         );
+        if(!$result){
+            throw new \Exception("Failed to upload avatar");
+        }
         return $path;
     }
 
@@ -36,11 +39,14 @@ class SupabaseStorageService{
         $fileName=$course_title . '-'. time() . '.' . $ext;
         $path="course_thumbnails/courses/" . $fileName;
 
-        $this->disk->put(
+        $result=$this->disk->put(
             $path,
             fopen($file->getRealPath(), 'r'),
             ['ContentType' => $file->getMimeType()]
         );
+        if(!$result){
+            throw new \Exception("Failed to upload thumbnail");
+        }
 
         return $path;
     }
@@ -51,11 +57,15 @@ class SupabaseStorageService{
         $fileName=strtolower($fileTitle) . '-' . time() . '.' . $ext;
         $path="course_materials/courses/" . strtolower($courseTitle) . "/" . strtolower($sectionTitle) . "/" . $fileName;
 
-        $this->disk->put(
+        $result= $this->disk->put(
             $path,
             fopen($file->getRealPath(), 'r'),
             ['ContentType' => $file->getMimeType()]
         );
+
+        if(!$result){
+            throw new \Exception("Failed to upload section material");
+        }
 
         return $path;
     }
@@ -65,11 +75,15 @@ class SupabaseStorageService{
         $filename=strtolower($fileTitle) . '-' . time() . '.' . $ext;
         $path="session_materials/session_" . strval($session_id) . "/" . $filename;
 
-        $this->disk->put(
+        $result= $this->disk->put(
             $path,
             fopen($file->getRealPath(), 'r'),
             ['ContentType' => $file->getMimeType()]
         );
+
+        if(!$result){
+            throw new \Exception("Failed to upload session material");
+        }
 
         return $path;
     }
@@ -79,11 +93,14 @@ class SupabaseStorageService{
         $fileName=strtolower($fileTitle) . '-' . time() . '.' . $ext;
         $path="ai_chat_documents/" . strval($user_id) . "/" . $fileName;
 
-        $this->disk->put(
+        $result= $this->disk->put(
             $path,
             fopen($file->getRealPath(), 'r'),
             ['ContentType' => $file->getMimeType()]
         );
+        if(!$result){
+            throw new \Exception("Failed to upload ai chat document");
+        }
 
         return $path;
     }
@@ -99,11 +116,15 @@ class SupabaseStorageService{
         $fileName=$filename . '.' . $ext;
         $path="chats/" . $fileName;
 
-        $this->disk->put(
+        $result= $this->disk->put(
             $path,
             fopen($file->getRealPath(), 'r'),
             ['ContentType' => $file->getMimeType()]
         );
+
+        if(!$result){
+            throw new \Exception("Failed to upload message file");
+        }
 
         return $path;
     }
