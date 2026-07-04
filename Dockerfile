@@ -40,6 +40,9 @@ RUN cp nginx.conf /etc/nginx/http.d/default.conf \
     && mkdir -p /run/nginx \
     && sed -i 's/user nginx;/user www-data;/g' /etc/nginx/nginx.conf
 
+# Copy PHP configurations
+COPY php-uploads.ini /usr/local/etc/php/conf.d/
+
 # Configure startup script executable permission
 RUN chmod +x /var/www/start.sh
 

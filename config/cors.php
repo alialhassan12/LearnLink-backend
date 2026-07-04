@@ -6,7 +6,7 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => explode(',', env('ALLOWED_ORIGINS', 'http://localhost:5173/api')),
+    'allowed_origins' => env('ALLOWED_ORIGINS') ? explode(',', env('ALLOWED_ORIGINS')) : ['http://localhost:5173', 'https://learnlink-lb.vercel.app'],
 
     'allowed_headers' => ['*'],
 
