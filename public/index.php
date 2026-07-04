@@ -17,4 +17,11 @@ require __DIR__.'/../vendor/autoload.php';
 /** @var Application $app */
 $app = require_once __DIR__.'/../bootstrap/app.php';
 
-$app->handleRequest(Request::capture());
+try {
+    error_log("Incoming Request: " . ($_SERVER['REQUEST_METHOD'] ?? 'UNKNOWN') . " " . ($_SERVER['REQUEST_URI'] ?? 'UNKNOWN'));
+    $app->handleRequest(Request::capture());
+} catch (\Throwable $e) {
+    error_log("UNCAUGHT EXCEPTION in index.php: " . $e->getMessage() . " in " . $e->getFile() . ":" . $e->getLine());
+    error_log($e->getTraceAsString());
+    throw $e;
+}
