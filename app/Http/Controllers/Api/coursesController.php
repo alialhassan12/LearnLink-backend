@@ -39,6 +39,11 @@ class coursesController extends Controller
             "sections.*.materials.*.size"=>"required|integer",
         ]);
 
+        return response()->json([
+            "success"=>false,
+            "message"=>"hit the endpoint"
+        ],401);
+
         Log::info("Passed course validation");
 
         $user=$request->user();
