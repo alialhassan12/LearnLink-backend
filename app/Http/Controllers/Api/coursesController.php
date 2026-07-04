@@ -42,7 +42,7 @@ class coursesController extends Controller
         return response()->json([
             "success"=>false,
             "message"=>"hit the endpoint"
-        ],401);
+        ],403);
 
         Log::info("Passed course validation");
 
