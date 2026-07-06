@@ -57,7 +57,7 @@ class authController extends Controller
         $token=$user->createToken('api_token')->plainTextToken;
 
         // send welcome email
-        Mail::to($user->email)->send(new WelcomeMail($user));
+        Mail::to($user->email)->queue(new WelcomeMail($user));
 
         if($user->role == 'student' || $user->role == 'teacher'){
             $user->load('subscription.plan');
