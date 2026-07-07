@@ -532,7 +532,7 @@ class coursesController extends Controller
         ],200);
     }
 
-    public function changeCourseStatus(Request $request,SupabaseStorageService $storage){
+    public function changeCourseStatus(Request $request,SubscriptionService $subscriptionService){
         $request->validate([
             "course_id"=>"required|exists:courses,id",
             "status"=>"required|in:published,draft"
@@ -560,6 +560,16 @@ class coursesController extends Controller
                 "success"=>false,
                 "message"=>"Course is already {$request->status}"
             ],400);
+        }
+
+        if($request->status == "published"){
+            $canCreateCourse=$subscriptionService->canCreateCourse($user);
+            if(!$canCreateCourse){
+                return response()->json([
+                    "success"=>false,
+                    "message"=>"You exceeded the limit of course publishing.Upgrade your Subscription to publish more courses",
+                ],403);
+            }
         }
         $course->update([
             "status"=>$request->status
