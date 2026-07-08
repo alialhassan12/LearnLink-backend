@@ -62,6 +62,7 @@ Route::middleware(['auth:sanctum','throttle:api'])->group(function () {
 
     // admin routes
     Route::middleware(['checkRole:admin'])->group(function(){
+        Route::get('/admin/dashboard',[adminController::class,'adminDashboard'])->name('admin-dashboard');
         Route::get('/admin/users',[adminController::class,'getUsers'])->name('get-users');
         Route::put('/admin/users/suspend',[adminController::class,'suspendUser'])->name('suspend-user');
         Route::put('/admin/users/activate',[adminController::class,'activateUser'])->name('activate-user');
@@ -76,6 +77,7 @@ Route::middleware(['auth:sanctum','throttle:api'])->group(function () {
 
     // teacher routes
     Route::middleware(['checkRole:teacher'])->group(function(){
+        Route::get('/teacher/dashboard',[teacherController::class,'teacherDashboard'])->name('teacher-dashboard');
         Route::get('/teacher/profile',[teacherController::class,'teacherProfile'])->name('teacher_profile');
         Route::put('/teacher/update-profile',[teacherController::class,'teacherUpdate'])->name('teacher_update');
         Route::post('/courses/create-course',[coursesController::class,'createCourse'])->name('create_course');

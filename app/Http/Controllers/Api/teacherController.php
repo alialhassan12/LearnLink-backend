@@ -3,8 +3,12 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Booking;
+use App\Models\CourseEnrollment;
+use App\Models\LiveSession;
 use App\Models\Teacher;
 use App\Services\SupabaseStorageService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class teacherController extends Controller
@@ -294,6 +298,52 @@ class teacherController extends Controller
                 'to'=>$teachers->lastItem(),
             ],
         ],200); 
+    }
+
+    public function teacherDashboard(Request $request){
+        $user=auth('sanctum')->user();
+        if(!$user){
+            return response()->json([
+                "message"=>"Unauthenticated"
+            ],401);
+        }
+        
+        $teacher=Teacher::withCount([
+            'courses'
+        ])->where('user_id',$user->id)->first();
+        if(!$teacher){
+            return response()->json([
+                "message"=>"Unauthorized Access"
+            ],401);
+        }
+        
+        $upcoming_sessions=LiveSession::with('student.user')
+                            ->whereHas('booking',function($q)use($teacher){
+                                $q->where('teacher_id',$teacher->id);
+                            })
+                            ->whereDate('scheduled_date','>=',Carbon::today())
+                            ->where('status','booked')
+                            ->limit(5)
+                            ->get();
+        $total_enrollments=CourseEnrollment::whereHas('course',function($q) use($teacher){
+            $q->where('teacher_id',$teacher->id);
+        })->count();    
+        
+
+        $pending_bookings=Booking::where('teacher_id',$teacher->id)
+                                    ->with('student.user')
+                                    ->where('status','pending')
+                                    ->limit(3)
+                                    ->get();
+        return response()->json([
+            "message"=>"Teacher dashboard fetched successfully",
+            "data"=>[
+                "total_courses"=>$teacher->courses_count,
+                "upcoming_sessions"=>$upcoming_sessions,
+                "total_enrollments"=>$total_enrollments,
+                "pending_bookings"=>$pending_bookings,
+            ]
+        ]);
     }
 }
 
