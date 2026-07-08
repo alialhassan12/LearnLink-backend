@@ -3,13 +3,14 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Course;
 use App\Models\User;
 use App\Services\SupabaseStorageService;
 use Illuminate\Http\Request;
 
 class adminController extends Controller
 {
-    public function getUsers(Request $reques,SupabaseStorageService $storage){
+    public function getUsers(Request $request,SupabaseStorageService $storage){
         $users=User::with("subscription.plan")->where('role','!=','admin')->orderBy("created_at")
             ->paginate(4);
         
@@ -76,6 +77,46 @@ class adminController extends Controller
         return response()->json([
             "message"=>"User Activated",
             "user"=>$targetedUser
+        ]);
+    }
+
+    public function adminDashboard(){
+        $user=auth('sanctum')->user();
+        if(!$user){
+            return response()->json([
+                "message"=>"Unauthenticated"
+            ],401);
+        }
+        if($user->role!="admin"){
+            return response()->json([
+                "message"=>"Unauthorized"
+            ],403);
+        }
+
+        $counts=User::selectRaw("
+            SUM(CASE WHEN role != 'admin' THEN 1 ELSE 0 END) as total_users,
+            SUM(CASE WHEN role = 'teacher' THEN 1 ELSE 0 END) as total_teachers,
+            SUM(CASE WHEN role = 'student' THEN 1 ELSE 0 END) as total_students
+        ")->first();
+
+        $totalUsers=$counts->total_users;
+        $totalTeachers=$counts->total_teachers;
+        $totalStudents=$counts->total_students;
+        $totalCourses=Course::where('status','published')->count();
+
+        $recentUsers=User::where('role','!=','admin')->latest()->take(5)->get();
+        $recentCourses=Course::where('status','published')->latest()->take(5)->get();
+
+        return response()->json([
+            "message"=>"Admin Dashboard Data Retrieved Successfully",
+            "data"=>[
+                "totalUsers"=>$totalUsers,
+                "totalTeachers"=>$totalTeachers,
+                "totalStudents"=>$totalStudents,
+                "totalCourses"=>$totalCourses,
+                "recentUsers"=>$recentUsers,
+                "recentCourses"=>$recentCourses,
+            ],
         ]);
     }
 }
