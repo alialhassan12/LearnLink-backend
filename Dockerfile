@@ -38,7 +38,11 @@ RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 # Copy Nginx config and configure Nginx directory / user permissions
 RUN cp nginx.conf /etc/nginx/http.d/default.conf \
     && mkdir -p /run/nginx \
-    && sed -i 's/user nginx;/user www-data;/g' /etc/nginx/nginx.conf
+    && sed -i 's/user nginx;/user www-data;/g' /etc/nginx/nginx.conf \
+    && chown -R www-data:www-data /var/lib/nginx /var/log/nginx
+
+# Copy PHP configurations
+COPY php-uploads.ini /usr/local/etc/php/conf.d/
 
 # Configure startup script executable permission
 RUN chmod +x /var/www/start.sh

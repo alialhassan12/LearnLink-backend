@@ -127,7 +127,7 @@ class teacherController extends Controller
 
         $teacher->save();
 
-        $teacher->load('user');
+        $teacher->load('user','availabilities');
         
         return response()->json([
             'message'=>'Profile updated successfully',
