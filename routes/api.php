@@ -16,6 +16,7 @@ use App\Http\Controllers\Api\coursesController;
 use App\Http\Controllers\Api\liveSessionsController;
 use App\Http\Controllers\Api\messageController;
 use App\Http\Controllers\Api\plansController;
+use App\Http\Controllers\Api\pushTokenController;
 use App\Http\Controllers\Api\sessionMaterialsController;
 use App\Http\Controllers\Api\sessionReviewsController;
 use App\Http\Controllers\Api\studentController;
@@ -59,6 +60,8 @@ Route::middleware(['auth:sanctum','throttle:api'])->group(function () {
     
     Route::get('/plans',[plansController::class,'getAllActivePlans'])->name('get-all-active-plans');
     Route::post('/plans/subscription/upgrade',[subscriptionsController::class,'upgradeSubscription'])->name('upgrade-subscription');
+
+    Route::post('/notifications/push-token',[pushTokenController::class,'store'])->name('store-push-token');
 
     // admin routes
     Route::middleware(['checkRole:admin'])->group(function(){

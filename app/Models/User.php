@@ -59,6 +59,10 @@ class User extends Authenticatable
         return $this->hasOne(Subscription::class);
     }
 
+    public function deviceTokens(){
+        return $this->hasMany(DeviceToken::class);
+    }
+
     // Casts
     protected function casts(): array
     {
