@@ -5,9 +5,11 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\LiveSession;
+use App\Models\Notification;
 use App\Models\Student;
 use App\Models\Subscription;
 use App\Models\Teacher;
+use App\Services\NotificationService;
 use App\Services\SubscriptionService;
 use App\Services\SupabaseStorageService;
 use Illuminate\Http\Request;
@@ -15,7 +17,7 @@ use Illuminate\Support\Facades\DB;
 
 class bookingsController extends Controller
 {
-    public function newBooking(Request $request)
+    public function newBooking(Request $request,NotificationService $notificationService)
     {
         $request->validate([
             'teacher_id' => 'required|exists:teachers,id',
@@ -41,16 +43,45 @@ class bookingsController extends Controller
             ], 401);
         }
 
-        $booking = Booking::create([
-            'teacher_id' => $request->teacher_id,
-            'student_id' => $student->id,
-            'scheduled_day' => $request->scheduled_day,
-            'scheduled_date' => $request->scheduled_date,
-            'scheduled_time' => $request->scheduled_time,
-            'subject' => $request->subject,
-            'student_note' => $request->student_note,
-            'price' => $request->price,
-        ]);
+        $booking = null;
+        DB::transaction(function() use ($request,$student,$notificationService,&$booking){
+            $booking = Booking::create([
+                'teacher_id' => $request->teacher_id,
+                'student_id' => $student->id,
+                'scheduled_day' => $request->scheduled_day,
+                'scheduled_date' => $request->scheduled_date,
+                'scheduled_time' => $request->scheduled_time,
+                'subject' => $request->subject,
+                'student_note' => $request->student_note,
+                'price' => $request->price,
+            ]);
+
+            
+            $teacher=Teacher::with('user')
+            ->where('id',$request->teacher_id)
+            ->first();
+
+            Notification::create([
+                "user_id"=>$teacher->user_id,
+                "title"=>"New Booking Request",
+                "body"=>"New booking request has been received from {$student->user->name}",
+                "type"=>"booking",
+                "data"=>[
+                    "type"=>"booking",
+                    "booking_id"=>$booking->id
+                ]
+            ]);
+            
+            $notificationService->send(
+                $teacher->user,
+                "New Booking Request",
+                "New booking request has been received from {$student->user->name}",
+                [
+                    "type"=>"booking",
+                    "booking_id"=>$booking->id
+                ]
+            );
+        });
 
         return response()->json([
             'message' => 'Booking created successfully',
