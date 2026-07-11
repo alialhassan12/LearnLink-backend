@@ -172,7 +172,7 @@ class bookingsController extends Controller
         ], 200);
     }
 
-    public function rejectBooking(Request $request, SupabaseStorageService $storage)
+    public function rejectBooking(Request $request, NotificationService $notificationService)
     {
         $request->validate([
             'booking_id' => 'required|exists:bookings,id',
@@ -198,10 +198,34 @@ class bookingsController extends Controller
             ], 401);
         }
 
-        $booking->status = 'rejected';
-        $booking->save();
+        DB::transaction(function() use ($request,$booking,$user,$notificationService){
+            $booking->status = 'rejected';
+            $booking->save();
+    
+            $booking->load('student.user');
 
-        $booking->load('student.user');
+            Notification::create([
+                "user_id"=>$booking->student->user_id,
+                "title"=>"Booking Rejected",
+                "body"=>"Your booking request for {$booking->subject} on {$booking->scheduled_date} has been rejected by {$user->name}",
+                "type"=>"booking",
+                "data"=>[
+                    "type"=>"booking",
+                    "booking_id"=>$booking->id
+                ]
+            ]);
+            
+            $notificationService->send(
+                $booking->student->user,
+                "Booking Rejected",
+                "Your booking request for {$booking->subject} on {$booking->scheduled_date} has been rejected by {$user->name}",
+                [
+                    "type"=>"booking",
+                    "booking_id"=>$booking->id
+                ]
+            );
+
+        });
 
         return response()->json([
             'message' => 'Booking rejected successfully',
@@ -209,7 +233,7 @@ class bookingsController extends Controller
         ], 200);
     }
 
-    public function approveBooking(Request $request, SupabaseStorageService $storage, SubscriptionService $subscriptionService)
+    public function approveBooking(Request $request, NotificationService $notificationService, SubscriptionService $subscriptionService)
     {
         $request->validate([
             'booking_id' => 'required|exists:bookings,id'
@@ -261,7 +285,7 @@ class bookingsController extends Controller
             ], 400);
         }
 
-        DB::transaction(function () use ($booking) {
+        DB::transaction(function () use ($booking, $user, $notificationService) {
             LiveSession::create([
                 'booking_id' => $booking->id,
                 'scheduled_date' => $booking->scheduled_date,
@@ -273,6 +297,27 @@ class bookingsController extends Controller
 
             $booking->status = 'approved';
             $booking->save();
+
+            Notification::create([
+                "user_id"=>$booking->student->user_id,
+                "title"=>"Booking Approved",
+                "body"=>"Your booking request for {$booking->subject} on {$booking->scheduled_date} has been approved by {$user->name}",
+                "type"=>"booking",
+                "data"=>[
+                    "type"=>"booking",
+                    "booking_id"=>$booking->id
+                ]
+            ]);
+            
+            $notificationService->send(
+                $booking->student->user,
+                "Booking Approved",
+                "Your booking request for {$booking->subject} on {$booking->scheduled_date} has been approved by {$user->name}",
+                [
+                    "type"=>"booking",
+                    "booking_id"=>$booking->id
+                ]
+            );
         });
 
         $current_live_sessions++;
