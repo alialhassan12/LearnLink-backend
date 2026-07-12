@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\courseReviewController;
 use App\Http\Controllers\Api\coursesController;
 use App\Http\Controllers\Api\liveSessionsController;
 use App\Http\Controllers\Api\messageController;
+use App\Http\Controllers\Api\notificationController;
 use App\Http\Controllers\Api\plansController;
 use App\Http\Controllers\Api\pushTokenController;
 use App\Http\Controllers\Api\sessionMaterialsController;
@@ -62,6 +63,7 @@ Route::middleware(['auth:sanctum','throttle:api'])->group(function () {
     Route::post('/plans/subscription/upgrade',[subscriptionsController::class,'upgradeSubscription'])->name('upgrade-subscription');
 
     Route::post('/notifications/push-token',[pushTokenController::class,'store'])->name('store-push-token');
+    Route::get('/notifications/history',[notificationController::class,'getNotificationHistory'])->name('get-notification-history');
 
     // admin routes
     Route::middleware(['checkRole:admin'])->group(function(){
@@ -71,6 +73,8 @@ Route::middleware(['auth:sanctum','throttle:api'])->group(function () {
         Route::put('/admin/users/activate',[adminController::class,'activateUser'])->name('activate-user');
         Route::get('/admin/plans',[plansController::class,'getAllPlans'])->name('get-all-plans');
         Route::post('/admin/plans/create-plan',[plansController::class,'createPlan'])->name('create-new-plan');
+        Route::put('/admin/plans/change-status',[plansController::class,'changePlanStatus'])->name('change-plan-status');
+        Route::put('/admin/plans/update',[plansController::class,'updatePlan'])->name('update-plan');
         Route::get("/admin/categories",[categoriesController::class,'listCategoriesToAdmin'])->name("list-admin-categories");
         Route::post("/admin/categories/new",[categoriesController::class,'createCategory'])->name("create-category");
         Route::put("/admin/categories/update",[categoriesController::class,'updateCategory'])->name("update-category");

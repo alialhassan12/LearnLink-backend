@@ -60,7 +60,57 @@ class plansController extends Controller
         ],200);
     }
 
-    public function updatePlan(Request $request,$id){
+    public function updatePlan(Request $request){
+        $request->validate([
+            "id"=>"required|exists:plans,id",
+            'title'=>'required|string|max:255',
+            'description'=>'required|string',
+            'type'=>'required|in:teacher,student',
+            'features'=>'required|array',
+
+            "features.max_courses"=>"required|integer|min:-1",
+            "features.sessions_per_month"=>"required|integer|min:-1",
+            "features.ai_tokens_per_month"=>"required|integer|min:0",
+            "features.search_priority"=>"required|boolean",
+
+            'duration_days'=>'nullable|integer|min:-1',
+            'price'=>'required|numeric|min:0',
+            'is_free'=>'required|boolean',
+            'status'=>"required|in:active,inactive"
+        ]);
+
+        $plan=Plan::findOrFail($request->id);
         
+        $plan->update([
+            "title"=>$request->title,
+            "description"=>$request->description,
+            "type"=>$request->type,
+            "features"=>$request->features,
+            "duration_days"=>$request->duration_days,
+            "price"=>$request->price,
+            "is_free"=>$request->is_free,
+            "status"=>$request->status
+        ]);
+
+        return response()->json([
+            "message"=>"Plan updated successfully",
+            "plan"=>$plan
+        ],200);
+    }
+
+    public function changePlanStatus(Request $request){
+        $request->validate([
+            "plan_id"=>"required|exists:plans,id",
+            "status"=>"required|in:active,inactive"
+        ]);
+
+        $plan=Plan::findOrFail($request->plan_id);
+        $plan->status=$request->status;
+        $plan->save();
+
+        return response()->json([
+            "message"=>"Plan status changed successfully",
+            "plan"=>$plan
+        ],200);
     }
 }

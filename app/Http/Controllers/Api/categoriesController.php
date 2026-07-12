@@ -64,12 +64,18 @@ class categoriesController extends Controller
     }
 
     public function deleteCategory($id){
-        $category=Category::whereId($id)->first();
+        $category=Category::withCount('courses')->whereId($id)->first();
         if(!$category){
             return response()->json([
                 "message"=>"Category not found"
             ],404);
         }
+        if($category->courses_count > 0){
+            return response()->json([
+                "message"=>"Category has courses, cannot delete"
+            ],403);
+        }
+
         $category->delete();
         return response()->json([
             "message"=>"Category deleted successfully",
