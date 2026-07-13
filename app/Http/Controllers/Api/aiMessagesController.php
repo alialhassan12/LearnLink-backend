@@ -55,7 +55,7 @@ class aiMessagesController extends Controller
             }
 
             // call ai service
-            $aiResponse=$aiService->generate($request->prompt);
+            $aiResponse=$aiService->generate($request->prompt,$user);
 
             if($aiResponse==null){
                 return response()->json([
@@ -155,7 +155,7 @@ class aiMessagesController extends Controller
                 ]);
             }
 
-            $aiResponse=$aiService->generateWithFile($request->prompt,$request->file);
+            $aiResponse=$aiService->generateWithFile($request->prompt,$request->file,$user);
 
             if($aiResponse==null){
                 return response()->json([
