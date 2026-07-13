@@ -507,6 +507,7 @@ class coursesController extends Controller
 
         $courses=Course::query()
                     ->with('category','teacher.user')
+                    ->withCount('courseReviews')
                     ->where('status','published')
                     ->orderBy('created_at','desc');
 
