@@ -4,14 +4,16 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\LiveSession;
+use App\Models\Notification;
 use App\Models\SessionMaterial;
+use App\Services\NotificationService;
 use App\Services\SupabaseStorageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class sessionMaterialsController extends Controller
 {
-    public function uploadSessionMaterials(Request $request, SupabaseStorageService $storage){
+    public function uploadSessionMaterials(Request $request, SupabaseStorageService $storage,NotificationService $notificationService){
         $request->validate([
             "live_session_id"=>"required|exists:live_sessions,id",
             "files"=>"required|array",
@@ -20,12 +22,12 @@ class sessionMaterialsController extends Controller
             "files.*.file"=>"required|file|mimes:pdf,doc,docx,ppt,pptx,xls,xlsx,jpg,jpeg,png,webp|max:20480"
         ]);
 
-        $session=LiveSession::findOrFail($request->live_session_id);
+        $session=LiveSession::with('booking.student.user','booking.teacher.user')->findOrFail($request->live_session_id);
         
         $materials=[];
         $filesInput = $request->input('files');
 
-        DB::transaction(function () use($request,$storage,$session,&$materials, $filesInput) {
+        DB::transaction(function () use($request,$storage,$session,&$materials, $filesInput,$notificationService) {
             foreach ($filesInput as $index => $fileData){
                 $file = $request->file("files.$index.file");
                 
@@ -42,6 +44,29 @@ class sessionMaterialsController extends Controller
                     }
                 }
             }
+
+            $message="Your teacher ".$session->booking->teacher->user->name." has uploaded new materials for your session ".$session->subject." on ".$session->scheduled_date ." at ".$session->scheduled_time;
+            // send push notification & store notification in db
+            Notification::create([
+                "user_id"=>$session->booking->student->user->id,
+                "title"=>"New Session Material",
+                "body"=> $message,
+                "type"=>"session",
+                "data"=>[
+                    "type"=>"session",
+                    "session_id"=>$session->id,
+                ]
+            ]);
+
+            $notificationService->send(
+                $session->booking->student->user,
+                "New Session Material",
+                $message,
+                [
+                    "type"=>"session",
+                    "session_id"=>$session->id,
+                ]
+            );
         });
 
         return response()->json([

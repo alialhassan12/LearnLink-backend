@@ -7,6 +7,8 @@ use App\Models\Category;
 use App\Models\Course;
 use App\Models\CourseMaterial;
 use App\Models\CourseSection;
+use App\Models\Notification;
+use App\Services\NotificationService;
 use App\Services\SubscriptionService;
 use App\Services\SupabaseStorageService;
 use Exception;
@@ -216,7 +218,7 @@ class coursesController extends Controller
         ],201);
     }
 
-    public function editCourse(Request $request, SupabaseStorageService $storage)
+    public function editCourse(Request $request, SupabaseStorageService $storage, NotificationService $notificationService)
     {
         $request->validate([
             "course_id" => "required|exists:courses,id",
@@ -254,7 +256,7 @@ class coursesController extends Controller
             ], 403);
         }
 
-        $course = Course::where('id', $request->course_id)
+        $course = Course::with('enrollments.student.user')->where('id', $request->course_id)
             ->where('teacher_id', $teacher->id)
             ->first();
 
@@ -264,7 +266,7 @@ class coursesController extends Controller
             ], 404);
         }
 
-        $updatedCourse = DB::transaction(function () use ($request, $storage, $course) {
+        $updatedCourse = DB::transaction(function () use ($request, $storage, $course, $notificationService) {
             if ($request->hasFile('thumbnail')) {
                 $thumbnailPath = $storage->uploadThumbnail(
                     $request->file('thumbnail'),
@@ -388,6 +390,31 @@ class coursesController extends Controller
             CourseSection::where('course_id', $course->id)
                 ->whereNotIn('id', $providedSectionIds)
                 ->delete();
+
+
+            // send notification to students who have enrolled in the course
+            foreach($course->enrollments as $enrollment){
+                Notification::create([
+                    "user_id"=>$enrollment->student->user->id,
+                    "title"=>"Course Updated",
+                    "body"=>"The course ".$course->title." has been updated",
+                    "type"=>"course",
+                    "data"=>[
+                        "type"=>"course",
+                        "course_id"=>$course->id,
+                    ]
+                ]);
+                
+                $notificationService->send(
+                    $enrollment->student->user,
+                    "Course Updated",
+                    "The course ".$course->title." has been updated",
+                    [
+                        "type"=>"course",
+                        "course_id"=>$course->id,
+                    ]
+                );
+            }
 
             return $course->load('sections.materials');
         });
