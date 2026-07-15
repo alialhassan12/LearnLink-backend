@@ -47,7 +47,7 @@ class authController extends Controller
                     'user_id'=>$user->id,
                     'plan_id'=>$plan->id,
                     'start_at'=>now(),
-                    'end_at'=>now()->addDays($plan->duration_days),
+                    'end_at'=>now()->addDays(30),
                 ]);
             }
 

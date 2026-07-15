@@ -20,13 +20,13 @@ class checkExpiredSubscriptions extends Command
         $freePlan=Plan::where('is_free',true)->first();
 
         $expiredSubscriptions=Subscription::where('end_at','<',now())  
-                                            ->where('status','active')
+                                            // ->where('status','active')
                                             ->get();
         
         foreach($expiredSubscriptions as $subscription){
             $subscription->update([
                 'plan_id'=>$freePlan->id,
-                'end_at'=>now()->addDays($freePlan->duration_days),
+                'end_at'=>now()->addDays(30),
                 'status'=>'active',
                 'tokens_used'=>0,
             ]);
