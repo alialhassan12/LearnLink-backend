@@ -6,14 +6,16 @@ use App\Events\MessageSent;
 use App\Events\ConversationUpdated;
 use App\Http\Controllers\Controller;
 use App\Models\Message;
+use App\Models\User;
 use App\Services\SupabaseStorageService;
 use App\Services\ConversationService;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class messageController extends Controller
 {
-    public function send(Request $request, SupabaseStorageService $storage)
+    public function send(Request $request, SupabaseStorageService $storage,NotificationService $notificationService)
     {
         $request->validate([
             'receiver_id' => 'required|exists:users,id',
@@ -72,6 +74,20 @@ class messageController extends Controller
         $loadedMessage = $message->load(['sender', 'conversation.participants']);
         broadcast(new MessageSent($loadedMessage));
         broadcast(new ConversationUpdated($loadedMessage));
+        
+        //send push notification to receiver
+        $receiverUser=User::with('deviceTokens')->where('id',$receiver_id)->first();
+        if($receiverUser){
+            $notificationService->send(
+                $receiverUser,
+                'New Message',
+                'You have received a new message from '.$user->name,
+                [
+                    "type"=>"message",
+                    "message_id"=>$message->id
+                ]
+            );
+        }
 
         return response()->json([
             'message' => $message,
