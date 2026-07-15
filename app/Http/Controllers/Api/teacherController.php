@@ -237,13 +237,26 @@ class teacherController extends Controller
         ],200); 
     }
 
-    public function getTeachersByFilters(Request $request, SupabaseStorageService $storage){
+    public function getTeachersByFilters(Request $request){
         $request->validate([
             'subjects'=>'array|nullable',
             'language'=>'string|nullable',
             'hourlyRate'=>'array|nullable|size:2',
             'rating'=>'numeric|nullable',
+            'search_query'=>'string|nullable|max:255'
         ]);
+
+        // Normalize sentinel/default values sent by the frontend
+        $subjects = $request->input('subjects', []);
+        $language = $request->input('language');
+        $search   = trim($request->input('search_query', ''));
+        $hourlyRate = $request->input('hourlyRate');
+
+        // Treat "all" as no language filter, empty string as no search
+        $hasLanguage  = !empty($language) && $language !== 'all';
+        $hasSearch    = $search !== '';
+        $hasSubjects  = !empty($subjects);
+        $hasHourlyRate= !empty($hourlyRate);
 
         $query=Teacher::query()
                 ->select('teachers.*')
@@ -252,28 +265,33 @@ class teacherController extends Controller
                 ->join('plans','subscriptions.plan_id','=','plans.id')
                 ->with('user.subscription.plan','liveSessions.sessionReview')
                 ->withCount('publishedCourses')
+                ->when($hasSubjects,
+                    function ($query) use ($subjects){
+                        $query->where(function($query) use($subjects){
+                            foreach($subjects as $subject){
+                                $query->orWhereJsonContains('teachers.subjects',$subject);
+                            }
+                        });
+                    }
+                )
+                ->when($hasLanguage,
+                    fn($query)=>$query->whereJsonContains('teachers.languages',$language)
+                )
+                ->when($hasHourlyRate,
+                    fn($query)=>$query->whereBetween('teachers.hourly_rate',$hourlyRate)
+                )
+                ->when($hasSearch,
+                    function($query) use($search){
+                        $query->where(function($query) use ($search){
+                            $query->where('users.name','ilike',"%$search%")
+                            ->orWhere('teachers.headline','ilike',"%$search%")
+                            ->orWhereJsonContains('teachers.subjects',$search);
+                        });
+                    }
+                )
                 ->orderBy('plans.features->search_priority', 'desc')
                 ->orderBy('teachers.created_at','desc');
-
-        if($request->has('subjects') && count($request->subjects)>0){
-            $query->where(function($q) use ($request){
-                foreach($request->subjects as $subject){
-                    $q->orWhereJsonContains('subjects', $subject);
-                }
-            });
-        }
-
-        if($request->has('language') && $request->language!="all"){
-            $query->whereJsonContains('languages', $request->language);
-        }
-
-        if($request->has('hourlyRate') && count($request->hourlyRate)==2){
-            $query->whereBetween('hourly_rate',$request->hourlyRate);
-        }
-
-        // if($request->has('rating') && $request->rating!=0){
-        //     $query->where('rating','>=',$request->rating);
-        // }
+            
         $teachers=$query->paginate(10);
         
         $teachers->getCollection()->transform(function($teacher){

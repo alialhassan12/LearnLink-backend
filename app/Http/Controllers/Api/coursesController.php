@@ -503,6 +503,7 @@ class coursesController extends Controller
         $request->validate([
             "category_id"=>"nullable | exists:categories,id",
             "price_range"=>"array | nullable| size:2",
+            "search_query"=>"string | nullable|max:255"
         ]);
 
         $courses=Course::query()
@@ -510,17 +511,43 @@ class coursesController extends Controller
                     ->withCount('courseReviews')
                     ->withAvg('courseReviews','rating')
                     ->where('status','published')
-                    ->orderBy('created_at','desc');
+                    ->when(
+                        $request->filled('category_id'),
+                        fn($query)=>$query->where('category_id',$request->category_id)
+                    )
+                    ->when(
+                        $request->filled('price_range'),
+                        fn($query)=>$query->whereBetween('price',$request->price_range)
+                    )
+                    ->when(
+                        $request->filled('search_query'),
+                        function($query) use($request){
+                            $search=trim($request->search_query);
+                            $query->where(function ($query) use($search){
+                                $query->where('title','ilike',"%$search%")
+                                ->orWhereHas('category',function($categoryQuery) use($search){
+                                    $categoryQuery->where('title','ilike',"%$search%");
+                                })
+                                ->orWhereHas('teacher',function ($teacherQuery) use ($search){
+                                    $teacherQuery->whereJsonContains('subjects',$search);
+                                });
+                            });
+                        }
+                    )
+                    ->latest()
+                    ->paginate(10);
 
-        if($request->has('category_id')){
-            $courses->where('category_id',$request->category_id);
-        }
+        // if($request->has('price_range') && count($request->price_range) == 2){
+        //     $courses->whereBetween('price',$request->price_range);
+        // }
 
-        if($request->has('price_range') && count($request->price_range) == 2){
-            $courses->whereBetween('price',$request->price_range);
-        }
+        // if($request->has('search_query')){
+        //     $courses->where('title','like','%'.$request->search_query.'%');
+        //     $courses->orWhere('category.title','like','%'.$request->search_query.'%');
+        //     $courses->orWhere('teacher.subjects','@>',$request->search_query);
+        // }
 
-        $courses=$courses->paginate(10);
+        // $courses=$courses->paginate(10);
 
         return response()->json([
             "message"=>"Courses fetched successfully",
