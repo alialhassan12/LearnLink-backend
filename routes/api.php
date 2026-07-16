@@ -83,6 +83,7 @@ Route::middleware(['auth:sanctum','throttle:api'])->group(function () {
         Route::get("/admin/courses",[adminController::class,"adminGetCourses"])->name("admin-get-courses");
         Route::get("/admin/courses/{id}",[adminController::class,"adminGetCourseDetails"])->name("admin-get-course-details");
         Route::put("/admin/courses/change-status",[adminController::class,"adminChangeCourseStatus"])->name("admin-change-course-status");
+        Route::get("/admin/subscriptions",[adminController::class,"adminSubscriptions"])->name("admin-get-subscriptions");
     });
 
     // teacher routes

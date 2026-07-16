@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Course;
+use App\Models\Subscription;
 use App\Models\User;
 use App\Services\SupabaseStorageService;
 use Illuminate\Http\Request;
@@ -195,7 +196,7 @@ class adminController extends Controller
                 "message" => "Course Not Found"
             ], 404);
         }
-        
+
         if ($request->status == $course->status) {
             return response()->json([
                 "message" => "Course Status Already " . $request->status
@@ -208,6 +209,28 @@ class adminController extends Controller
         return response()->json([
             "message" => "Course Status Changed Successfully",
             "course" => $course
+        ]);
+    }
+
+    public function adminSubscriptions()
+    {
+        $user = auth('sanctum')->user();
+        if (!$user) {
+            return response()->json([
+                "message" => "Unauthenticated"
+            ], 401);
+        }
+        if ($user->role != "admin") {
+            return response()->json([
+                "message" => "Unauthorized"
+            ], 403);
+        }
+
+        $subscriptions = Subscription::with("user", "plan")->latest()->paginate(5);
+
+        return response()->json([
+            "message" => "Subscriptions Retrieved Successfully",
+            "subscriptions" => $subscriptions
         ]);
     }
 }
