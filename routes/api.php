@@ -80,6 +80,9 @@ Route::middleware(['auth:sanctum','throttle:api'])->group(function () {
         Route::put("/admin/categories/update",[categoriesController::class,'updateCategory'])->name("update-category");
         Route::delete("/admin/categories/delete/{id}",[categoriesController::class,'deleteCategory'])->name("delete-category");
         Route::put("/admin/categories/change-status",[categoriesController::class,'changeCategoryStatus'])->name("change-category-status");
+        Route::get("/admin/courses",[adminController::class,"adminGetCourses"])->name("admin-get-courses");
+        Route::get("/admin/courses/{id}",[adminController::class,"adminGetCourseDetails"])->name("admin-get-course-details");
+        Route::put("/admin/courses/change-status",[adminController::class,"adminChangeCourseStatus"])->name("admin-change-course-status");
     });
 
     // teacher routes
